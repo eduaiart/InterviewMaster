@@ -39,7 +39,8 @@
             <form id="interviewForm" method="POST" action="{{ url_for('submit_interview', interview_id=interview.id) }}">
                 <input type="hidden" id="time_taken" name="time_taken" value="0">
                 
-                {% for i, question in enumerate(questions) %}
+                {% for question in questions %}
+                {% set i = loop.index0 %}
                 <div class="card mb-4 question-card" data-question="{{ i }}">
                     <div class="card-header">
                         <h5 class="mb-0">
