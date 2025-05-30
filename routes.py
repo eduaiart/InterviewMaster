@@ -1002,6 +1002,67 @@ def export_team_report():
         flash('Failed to export team report.', 'error')
         return redirect(url_for('team_management'))
 
+@app.route('/pricing')
+def pricing():
+    """Pricing page with subscription plans"""
+    return render_template('pricing.html')
+
+@app.route('/settings')
+@login_required
+def settings():
+    """User settings and profile management"""
+    return render_template('settings.html', user=current_user)
+
+@app.route('/settings/update', methods=['POST'])
+@login_required
+def update_settings():
+    """Update user profile settings"""
+    try:
+        # Get form data
+        username = request.form.get('username')
+        email = request.form.get('email')
+        
+        # Basic validation
+        if not username or not email:
+            flash('Username and email are required.', 'error')
+            return redirect(url_for('settings'))
+        
+        # Check if username/email already exists (excluding current user)
+        existing_user = User.query.filter(
+            (User.username == username) | (User.email == email),
+            User.id != current_user.id
+        ).first()
+        
+        if existing_user:
+            flash('Username or email already in use.', 'error')
+            return redirect(url_for('settings'))
+        
+        # Update user profile
+        current_user.username = username
+        current_user.email = email
+        
+        # Log the action
+        audit_log = AuditLog(
+            user_id=current_user.id,
+            action='update_profile',
+            resource_type='user',
+            resource_id=current_user.id,
+            details=json.dumps({'username': username, 'email': email}),
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent')
+        )
+        db.session.add(audit_log)
+        
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating profile: {e}")
+        flash('Failed to update profile. Please try again.', 'error')
+    
+    return redirect(url_for('settings'))
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404
