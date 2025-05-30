@@ -60,7 +60,7 @@ class VideoRecording(db.Model):
     duration_seconds = db.Column(db.Integer)
     ai_analysis = db.Column(db.Text)  # JSON string of AI analysis results
     confidence_score = db.Column(db.Float, default=0.0)
-    communication_style = db.Column(db.String(100))
+    communication_style = db.Column(db.Text)
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
     processed_at = db.Column(db.DateTime)
     
