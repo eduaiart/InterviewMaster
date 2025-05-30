@@ -414,7 +414,7 @@ function viewProfile(candidateId) {
 }
 
 function downloadReport(responseId) {
-    window.open(`{{ url_for('download_individual_report', response_id=0) }}`.replace('0', responseId), '_blank');
+    window.open(`{{ url_for('interview_results', response_id=0) }}`.replace('0', responseId), '_blank');
 }
 </script>
 {% endblock %}
