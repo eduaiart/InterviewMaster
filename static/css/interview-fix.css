@@ -1,32 +1,39 @@
-/* Direct fix for interview form text visibility */
-textarea.form-control {
-    color: #ffffff !important;
-    background-color: #1f2937 !important;
-    border: 1px solid #4b5563 !important;
+/* Direct fix for interview form text visibility - highest priority */
+.form-control,
+textarea,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select {
+    color: #000000 !important;
+    background-color: #f8f9fa !important;
+    border: 2px solid #6c757d !important;
 }
 
-textarea.form-control:focus {
-    color: #ffffff !important;
-    background-color: #1f2937 !important;
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+.form-control:focus,
+textarea:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+select:focus {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
 }
 
-textarea.form-control::placeholder {
-    color: #9ca3af !important;
+.form-control::placeholder,
+textarea::placeholder,
+input::placeholder {
+    color: #6c757d !important;
+    opacity: 1 !important;
 }
 
-/* Ensure all form controls have proper visibility */
-input.form-control,
-select.form-control {
-    color: #ffffff !important;
-    background-color: #1f2937 !important;
-    border: 1px solid #4b5563 !important;
-}
-
-input.form-control:focus,
-select.form-control:focus {
-    color: #ffffff !important;
-    background-color: #1f2937 !important;
-    border-color: #3b82f6 !important;
+/* Specific override for interview forms */
+.interview-form .form-control,
+.interview-form textarea,
+.interview-form input {
+    background-color: #f8f9fa !important;
+    color: #000000 !important;
+    border: 2px solid #6c757d !important;
 }
