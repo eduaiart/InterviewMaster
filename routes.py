@@ -271,7 +271,9 @@ def candidate_analytics(interview_id):
     # Calculate analytics
     if responses:
         avg_score = sum(r.ai_score for r in responses) / len(responses)
-        avg_time = sum(r.time_taken_minutes for r in responses if r.time_taken_minutes) / len([r for r in responses if r.time_taken_minutes])
+        # Fix division by zero for time calculation
+        time_responses = [r for r in responses if r.time_taken_minutes]
+        avg_time = sum(r.time_taken_minutes for r in time_responses) / len(time_responses) if time_responses else 0
     else:
         avg_score = 0
         avg_time = 0
