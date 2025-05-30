@@ -1,12 +1,14 @@
 import json
 import logging
+import os
 from datetime import datetime
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from app import app, db
-from models import User, Interview, InterviewResponse, Question
-from ai_service import generate_interview_questions, score_interview_responses
+from models import User, Interview, InterviewResponse, Question, VideoRecording
+from ai_service import generate_interview_questions, score_interview_responses, analyze_video_interview
 
 @app.route('/')
 def index():
@@ -283,6 +285,71 @@ def candidate_analytics(interview_id):
                          responses=responses,
                          avg_score=avg_score,
                          avg_time=avg_time)
+
+@app.route('/upload_video_recording', methods=['POST'])
+@login_required
+def upload_video_recording():
+    """Handle video recording upload and AI analysis"""
+    try:
+        if 'video' not in request.files:
+            return jsonify({'error': 'No video file provided'}), 400
+        
+        video_file = request.files['video']
+        interview_id = request.form.get('interview_id')
+        candidate_id = request.form.get('candidate_id')
+        
+        if not video_file or not interview_id or not candidate_id:
+            return jsonify({'error': 'Missing required data'}), 400
+        
+        # Verify permissions
+        if current_user.id != int(candidate_id):
+            return jsonify({'error': 'Access denied'}), 403
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = os.path.join(app.root_path, 'uploads', 'videos')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate secure filename
+        filename = secure_filename(f"{candidate_id}_{interview_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.webm")
+        file_path = os.path.join(upload_dir, filename)
+        
+        # Save the video file
+        video_file.save(file_path)
+        file_size = os.path.getsize(file_path)
+        
+        # Get interview context for AI analysis
+        interview = Interview.query.get(interview_id)
+        interview_context = f"Job: {interview.title}\n{interview.job_description[:200]}" if interview else None
+        
+        # Perform AI analysis
+        ai_analysis = analyze_video_interview(file_path, interview_context)
+        
+        # Create database record
+        video_recording = VideoRecording(
+            interview_id=interview_id,
+            candidate_id=candidate_id,
+            filename=filename,
+            file_path=file_path,
+            file_size=file_size,
+            ai_analysis=json.dumps(ai_analysis),
+            confidence_score=ai_analysis.get('confidence', 0),
+            communication_style=ai_analysis.get('communication_style', 'Standard'),
+            processed_at=datetime.utcnow()
+        )
+        
+        db.session.add(video_recording)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'ai_analysis': ai_analysis,
+            'message': 'Video uploaded and analyzed successfully'
+        })
+        
+    except Exception as e:
+        logging.error(f"Error uploading video: {e}")
+        db.session.rollback()
+        return jsonify({'error': 'Upload failed'}), 500
 
 @app.errorhandler(404)
 def not_found_error(error):

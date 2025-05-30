@@ -287,16 +287,23 @@ function showVideoAnalysis(analysis) {
     // Create a modal or notification to show AI analysis
     const analysisHtml = `
         <div class="alert alert-info mt-3">
-            <h6><i data-feather="brain" class="me-2"></i>AI Video Analysis</h6>
-            <p><strong>Confidence Level:</strong> ${analysis.confidence || 'N/A'}</p>
+            <h6><i data-feather="cpu" class="me-2"></i>AI Video Analysis</h6>
+            <p><strong>Confidence Level:</strong> ${analysis.confidence || 'N/A'}%</p>
             <p><strong>Communication Style:</strong> ${analysis.communication_style || 'N/A'}</p>
             <p><strong>Key Insights:</strong> ${analysis.insights || 'Analysis in progress...'}</p>
+            ${analysis.engagement_score ? `<p><strong>Engagement Score:</strong> ${analysis.engagement_score}%</p>` : ''}
+            ${analysis.professionalism_score ? `<p><strong>Professionalism Score:</strong> ${analysis.professionalism_score}%</p>` : ''}
         </div>
     `;
     
     // Insert after video recording card
     const videoCard = document.querySelector('.card.border-info');
     videoCard.insertAdjacentHTML('afterend', analysisHtml);
+    
+    // Replace feather icons in the new content
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
 }
 
 function showQuestion(n) {

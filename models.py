@@ -49,3 +49,21 @@ class Question(db.Model):
     order_index = db.Column(db.Integer, nullable=False)
     weight = db.Column(db.Float, default=1.0)
     expected_keywords = db.Column(db.Text)  # JSON string of expected keywords for scoring
+
+class VideoRecording(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    interview_id = db.Column(db.Integer, db.ForeignKey('interview.id'), nullable=False)
+    candidate_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    file_path = db.Column(db.String(500), nullable=False)
+    file_size = db.Column(db.Integer)
+    duration_seconds = db.Column(db.Integer)
+    ai_analysis = db.Column(db.Text)  # JSON string of AI analysis results
+    confidence_score = db.Column(db.Float, default=0.0)
+    communication_style = db.Column(db.String(100))
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    processed_at = db.Column(db.DateTime)
+    
+    # Relationships
+    interview = db.relationship('Interview', backref='video_recordings')
+    candidate = db.relationship('User', backref='video_recordings')
