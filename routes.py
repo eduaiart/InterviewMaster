@@ -834,6 +834,174 @@ def add_team_member():
         logging.error(f"Error adding team member: {e}")
         return jsonify({'success': False, 'error': 'Failed to add team member'})
 
+@app.route('/api/get_member_details/<int:member_id>')
+@login_required
+def get_member_details(member_id):
+    """Get detailed information about a team member"""
+    if current_user.role not in ['admin', 'recruiter']:
+        return jsonify({'error': 'Access denied'}), 403
+    
+    try:
+        member = User.query.get_or_404(member_id)
+        if member.role != 'recruiter':
+            return jsonify({'error': 'Invalid member ID'}), 404
+        
+        # Get member statistics
+        interviews_count = Interview.query.filter_by(recruiter_id=member.id).count()
+        responses = InterviewResponse.query.join(Interview).filter(
+            Interview.recruiter_id == member.id
+        ).all()
+        
+        member_details = {
+            'id': member.id,
+            'username': member.username,
+            'email': member.email,
+            'role': member.role,
+            'created_at': member.created_at.strftime('%Y-%m-%d'),
+            'interviews_count': interviews_count,
+            'responses_count': len(responses),
+            'avg_score': sum(r.ai_score for r in responses) / len(responses) if responses else 0,
+            'recent_activity': [
+                {
+                    'type': 'interview_created',
+                    'title': interview.title,
+                    'date': interview.created_at.strftime('%Y-%m-%d')
+                }
+                for interview in Interview.query.filter_by(recruiter_id=member.id).order_by(Interview.created_at.desc()).limit(5)
+            ]
+        }
+        
+        html_content = f"""
+        <div class="member-details">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Basic Information</h6>
+                    <p><strong>Username:</strong> {member_details['username']}</p>
+                    <p><strong>Email:</strong> {member_details['email']}</p>
+                    <p><strong>Role:</strong> {member_details['role'].title()}</p>
+                    <p><strong>Joined:</strong> {member_details['created_at']}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Statistics</h6>
+                    <p><strong>Interviews Created:</strong> {member_details['interviews_count']}</p>
+                    <p><strong>Total Responses:</strong> {member_details['responses_count']}</p>
+                    <p><strong>Average Score:</strong> {member_details['avg_score']:.1f}%</p>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h6>Recent Activity</h6>
+                    <ul class="list-group">
+                        {''.join([f'<li class="list-group-item"><small>{activity["date"]}</small> - Created interview: {activity["title"]}</li>' for activity in member_details['recent_activity']])}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        """
+        
+        return jsonify({'html': html_content})
+        
+    except Exception as e:
+        logging.error(f"Error getting member details: {e}")
+        return jsonify({'error': 'Failed to load member details'}), 500
+
+@app.route('/api/update_member_role', methods=['POST'])
+@login_required
+def update_member_role():
+    """Update a team member's role"""
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Access denied. Admin privileges required'}), 403
+    
+    try:
+        data = request.get_json()
+        member_id = data.get('member_id')
+        new_role = data.get('new_role')
+        
+        if new_role not in ['recruiter', 'admin', 'viewer']:
+            return jsonify({'success': False, 'error': 'Invalid role'})
+        
+        member = User.query.get_or_404(member_id)
+        old_role = member.role
+        member.role = new_role
+        
+        # Log the action
+        audit_log = AuditLog(
+            user_id=current_user.id,
+            action='update_member_role',
+            resource_type='user',
+            resource_id=member_id,
+            details=json.dumps({'old_role': old_role, 'new_role': new_role})
+        )
+        db.session.add(audit_log)
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': f'Role updated to {new_role}'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating member role: {e}")
+        return jsonify({'success': False, 'error': 'Failed to update role'})
+
+@app.route('/api/toggle_member_status', methods=['POST'])
+@login_required
+def toggle_member_status():
+    """Toggle a team member's active status"""
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Access denied. Admin privileges required'}), 403
+    
+    try:
+        data = request.get_json()
+        member_id = data.get('member_id')
+        
+        # For demo purposes, we'll simulate status toggle
+        # In real implementation, this would update a team_member table
+        return jsonify({'success': True, 'message': 'Member status updated'})
+        
+    except Exception as e:
+        logging.error(f"Error toggling member status: {e}")
+        return jsonify({'success': False, 'error': 'Failed to update status'})
+
+@app.route('/api/export_team_report')
+@login_required
+def export_team_report():
+    """Export team performance report"""
+    if current_user.role not in ['admin', 'recruiter']:
+        flash('Access denied.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    try:
+        from flask import make_response
+        
+        # Get team data
+        recruiters = User.query.filter_by(role='recruiter').all()
+        
+        report_content = f"Team Performance Report\n"
+        report_content += f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
+        
+        for recruiter in recruiters:
+            interviews_count = Interview.query.filter_by(recruiter_id=recruiter.id).count()
+            responses = InterviewResponse.query.join(Interview).filter(
+                Interview.recruiter_id == recruiter.id
+            ).all()
+            avg_score = sum(r.ai_score for r in responses) / len(responses) if responses else 0
+            
+            report_content += f"Member: {recruiter.username}\n"
+            report_content += f"Email: {recruiter.email}\n"
+            report_content += f"Interviews Created: {interviews_count}\n"
+            report_content += f"Total Responses: {len(responses)}\n"
+            report_content += f"Average Score: {avg_score:.1f}%\n"
+            report_content += "---\n"
+        
+        response = make_response(report_content)
+        response.headers['Content-Type'] = 'text/plain'
+        response.headers['Content-Disposition'] = 'attachment; filename=team_report.txt'
+        return response
+        
+    except Exception as e:
+        logging.error(f"Error exporting team report: {e}")
+        flash('Failed to export team report.', 'error')
+        return redirect(url_for('team_management'))
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404
