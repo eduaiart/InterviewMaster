@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Create Interview - AI Interview Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i data-feather="plus-circle" class="me-2"></i>
+                        Create New Interview
+                    </h3>
+                    <p class="mb-0 opacity-75">AI will generate relevant questions based on your job description</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label for="title" class="form-label fw-bold">
+                                <i data-feather="briefcase" class="me-2"></i>
+                                Job Title
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="title" name="title" 
+                                   placeholder="e.g., Senior Software Engineer, Marketing Manager" required>
+                            <div class="form-text">
+                                Enter the specific job title for this position
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="job_description" class="form-label fw-bold">
+                                <i data-feather="file-text" class="me-2"></i>
+                                Job Description
+                            </label>
+                            <textarea class="form-control" id="job_description" name="job_description" 
+                                      rows="8" required placeholder="Paste your complete job description here...
+
+Example:
+We are looking for a Senior Software Engineer to join our team. The ideal candidate will have:
+- 5+ years of experience in Python development
+- Strong knowledge of web frameworks (Django, Flask)
+- Experience with cloud platforms (AWS, GCP)
+- Excellent problem-solving skills
+- Bachelor's degree in Computer Science or related field
+
+Responsibilities:
+- Design and develop scalable web applications
+- Collaborate with cross-functional teams
+- Mentor junior developers
+- Participate in code reviews"></textarea>
+                            <div class="form-text">
+                                The more detailed your job description, the better the AI can generate relevant questions
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="duration" class="form-label fw-bold">
+                                <i data-feather="clock" class="me-2"></i>
+                                Interview Duration
+                            </label>
+                            <select class="form-select" id="duration" name="duration">
+                                <option value="15">15 minutes</option>
+                                <option value="30" selected>30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60">60 minutes</option>
+                            </select>
+                            <div class="form-text">
+                                Recommended time for candidates to complete the interview
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info border-0">
+                            <div class="d-flex">
+                                <i data-feather="info" class="me-3 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <h6 class="mb-1">How it works:</h6>
+                                    <p class="mb-0">Our AI will analyze your job description and automatically generate 5 relevant interview questions covering technical skills, problem-solving, communication, and cultural fit. Questions will be tailored to the specific role and requirements you've provided.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-primary btn-lg px-4">
+                                <i data-feather="zap" class="me-2"></i>
+                                Generate Interview with AI
+                            </button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg px-4">
+                                <i data-feather="arrow-left" class="me-2"></i>
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="card mt-4 bg-light border-0">
+                <div class="card-body">
+                    <h5 class="mb-3">
+                        <i data-feather="eye" class="me-2"></i>
+                        What happens next?
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                                <i data-feather="brain" class="text-primary"></i>
+                            </div>
+                            <h6>AI Generation</h6>
+                            <small class="text-muted">Questions generated based on job requirements</small>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                                <i data-feather="link" class="text-success"></i>
+                            </div>
+                            <h6>Interview Link</h6>
+                            <small class="text-muted">Shareable link for candidates</small>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                                <i data-feather="bar-chart" class="text-info"></i>
+                            </div>
+                            <h6>AI Scoring</h6>
+                            <small class="text-muted">Automated evaluation and feedback</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-resize textarea
+document.getElementById('job_description').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+});
+</script>
+{% endblock %}

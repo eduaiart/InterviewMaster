@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}Interview: {{ interview.title }} - AI Interview Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Interview Header -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body bg-primary text-white">
+                    <h2 class="mb-2">{{ interview.title }}</h2>
+                    <p class="mb-3 opacity-75">{{ interview.job_description[:200] }}...</p>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-light text-dark me-3">
+                            <i data-feather="clock" style="width: 16px; height: 16px;" class="me-1"></i>
+                            {{ interview.duration_minutes }} minutes
+                        </span>
+                        <span class="badge bg-light text-dark">
+                            <i data-feather="help-circle" style="width: 16px; height: 16px;" class="me-1"></i>
+                            {{ questions|length }} questions
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timer Card -->
+            <div class="card border-warning mb-4">
+                <div class="card-body text-center">
+                    <h5 class="mb-2">
+                        <i data-feather="timer" class="me-2"></i>
+                        Time Remaining
+                    </h5>
+                    <h3 id="timer" class="text-warning mb-0">{{ interview.duration_minutes }}:00</h3>
+                </div>
+            </div>
+
+            <!-- Interview Form -->
+            <form id="interviewForm" method="POST" action="{{ url_for('submit_interview', interview_id=interview.id) }}">
+                <input type="hidden" id="time_taken" name="time_taken" value="0">
+                
+                {% for i, question in enumerate(questions) %}
+                <div class="card mb-4 question-card" data-question="{{ i }}">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <span class="badge bg-primary me-2">{{ i + 1 }}</span>
+                            Question {{ i + 1 }} of {{ questions|length }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead mb-4">{{ question.text }}</p>
+                        
+                        {% if question.type == 'multiple_choice' and question.get('options') %}
+                            {% for j, option in enumerate(question.options) %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" 
+                                       name="answer_{{ i }}" id="q{{ i }}_opt{{ j }}" value="{{ option }}">
+                                <label class="form-check-label" for="q{{ i }}_opt{{ j }}">
+                                    {{ option }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="mb-3">
+                                <textarea class="form-control" name="answer_{{ i }}" 
+                                          placeholder="Type your answer here..." 
+                                          rows="6" required></textarea>
+                                <div class="form-text">
+                                    <i data-feather="info" style="width: 16px; height: 16px;" class="me-1"></i>
+                                    Be specific and provide examples where possible. Aim for 2-3 sentences minimum.
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Progress Bar -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Progress</span>
+                            <span id="progress-text">0 of {{ questions|length }} completed</span>
+                        </div>
+                        <div class="progress">
+                            <div id="progress-bar" class="progress-bar bg-success" role="progressbar" 
+                                 style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="alert alert-info border-0">
+                    <h6 class="mb-2">
+                        <i data-feather="info" class="me-2"></i>
+                        Interview Instructions
+                    </h6>
+                    <ul class="mb-0">
+                        <li>Answer all questions thoughtfully and completely</li>
+                        <li>You can navigate between questions and revise your answers</li>
+                        <li>Your progress is automatically saved</li>
+                        <li>Submit when you're satisfied with all responses</li>
+                    </ul>
+                </div>
+
+                <!-- Navigation -->
+                <div class="d-flex justify-content-between mb-4">
+                    <button type="button" id="prevBtn" class="btn btn-outline-secondary" onclick="changeQuestion(-1)" disabled>
+                        <i data-feather="chevron-left" class="me-2"></i>
+                        Previous
+                    </button>
+                    <button type="button" id="nextBtn" class="btn btn-primary" onclick="changeQuestion(1)">
+                        Next
+                        <i data-feather="chevron-right" class="ms-2"></i>
+                    </button>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" id="submitBtn" class="btn btn-success btn-lg px-5" style="display: none;">
+                        <i data-feather="send" class="me-2"></i>
+                        Submit Interview
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentQuestion = 0;
+const totalQuestions = {{ questions|length }};
+let startTime = Date.now();
+let timerInterval;
+
+// Initialize interview
+document.addEventListener('DOMContentLoaded', function() {
+    showQuestion(0);
+    startTimer();
+    updateProgress();
+    
+    // Save progress periodically
+    setInterval(saveProgress, 30000); // Save every 30 seconds
+});
+
+function showQuestion(n) {
+    const cards = document.querySelectorAll('.question-card');
+    cards.forEach(card => card.style.display = 'none');
+    
+    if (cards[n]) {
+        cards[n].style.display = 'block';
+    }
+    
+    // Update navigation buttons
+    document.getElementById('prevBtn').disabled = (n === 0);
+    document.getElementById('nextBtn').style.display = (n === totalQuestions - 1) ? 'none' : 'inline-block';
+    document.getElementById('submitBtn').style.display = (n === totalQuestions - 1) ? 'inline-block' : 'none';
+    
+    currentQuestion = n;
+    updateProgress();
+}
+
+function changeQuestion(n) {
+    const newQuestion = currentQuestion + n;
+    if (newQuestion >= 0 && newQuestion < totalQuestions) {
+        showQuestion(newQuestion);
+    }
+}
+
+function updateProgress() {
+    const completed = getCompletedQuestions();
+    const percentage = (completed / totalQuestions) * 100;
+    
+    document.getElementById('progress-bar').style.width = percentage + '%';
+    document.getElementById('progress-bar').setAttribute('aria-valuenow', percentage);
+    document.getElementById('progress-text').textContent = `${completed} of ${totalQuestions} completed`;
+}
+
+function getCompletedQuestions() {
+    let completed = 0;
+    for (let i = 0; i < totalQuestions; i++) {
+        const textarea = document.querySelector(`textarea[name="answer_${i}"]`);
+        const radio = document.querySelector(`input[name="answer_${i}"]:checked`);
+        
+        if ((textarea && textarea.value.trim().length > 0) || radio) {
+            completed++;
+        }
+    }
+    return completed;
+}
+
+function startTimer() {
+    const duration = {{ interview.duration_minutes }} * 60; // Convert to seconds
+    let timeLeft = duration;
+    
+    timerInterval = setInterval(function() {
+        timeLeft--;
+        
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        
+        const display = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        document.getElementById('timer').textContent = display;
+        
+        // Change color when time is running low
+        const timerElement = document.getElementById('timer');
+        if (timeLeft < 300) { // Less than 5 minutes
+            timerElement.className = 'text-danger mb-0';
+        } else if (timeLeft < 600) { // Less than 10 minutes
+            timerElement.className = 'text-warning mb-0';
+        }
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert('Time is up! The interview will be submitted automatically.');
+            document.getElementById('interviewForm').submit();
+        }
+    }, 1000);
+}
+
+function saveProgress() {
+    // In a real implementation, this would save answers to localStorage or send to server
+    console.log('Progress saved');
+}
+
+// Update progress when answers change
+document.addEventListener('input', updateProgress);
+document.addEventListener('change', updateProgress);
+
+// Form submission
+document.getElementById('interviewForm').addEventListener('submit', function(e) {
+    // Calculate time taken
+    const timeTaken = Math.floor((Date.now() - startTime) / 60000); // Convert to minutes
+    document.getElementById('time_taken').value = timeTaken;
+    
+    // Confirm submission
+    const completed = getCompletedQuestions();
+    if (completed < totalQuestions) {
+        if (!confirm(`You have only completed ${completed} of ${totalQuestions} questions. Are you sure you want to submit?`)) {
+            e.preventDefault();
+            return;
+        }
+    }
+    
+    clearInterval(timerInterval);
+});
+
+// Prevent accidental page refresh
+window.addEventListener('beforeunload', function(e) {
+    const completed = getCompletedQuestions();
+    if (completed > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft' && currentQuestion > 0) {
+        changeQuestion(-1);
+    } else if (e.key === 'ArrowRight' && currentQuestion < totalQuestions - 1) {
+        changeQuestion(1);
+    }
+});
+</script>
+{% endblock %}

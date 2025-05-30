@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - AI Interview Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row align-items-center min-vh-75">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold mb-4">
+                AI-Powered Interview Platform
+            </h1>
+            <p class="lead mb-4">
+                Streamline your hiring process with intelligent interview automation. 
+                Create, conduct, and evaluate interviews with the power of artificial intelligence.
+            </p>
+            
+            <div class="d-flex gap-3 mb-4">
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                    <i data-feather="user-plus" class="me-2"></i>
+                    Get Started Free
+                </a>
+                <a href="#features" class="btn btn-outline-secondary btn-lg">
+                    <i data-feather="info" class="me-2"></i>
+                    Learn More
+                </a>
+            </div>
+            
+            <div class="row text-center mt-5">
+                <div class="col-4">
+                    <h4 class="fw-bold text-primary">500+</h4>
+                    <small class="text-muted">Interviews Created</small>
+                </div>
+                <div class="col-4">
+                    <h4 class="fw-bold text-primary">95%</h4>
+                    <small class="text-muted">Time Saved</small>
+                </div>
+                <div class="col-4">
+                    <h4 class="fw-bold text-primary">4.9★</h4>
+                    <small class="text-muted">User Rating</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="text-center">
+                <!-- Placeholder for hero image/illustration -->
+                <div class="bg-primary bg-opacity-10 rounded-3 p-5 mb-4">
+                    <i data-feather="brain" style="width: 200px; height: 200px; stroke-width: 1;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Why Choose Our Platform?</h2>
+            <p class="lead text-muted">Powerful features designed for modern hiring</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                            <i data-feather="zap" class="text-primary" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <h5 class="card-title">AI-Generated Questions</h5>
+                        <p class="card-text text-muted">
+                            Automatically generate relevant interview questions based on job descriptions using advanced AI.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                            <i data-feather="target" class="text-success" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <h5 class="card-title">Smart Scoring</h5>
+                        <p class="card-text text-muted">
+                            Intelligent evaluation of candidate responses with detailed feedback and recommendations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                            <i data-feather="users" class="text-info" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <h5 class="card-title">Role-Based Access</h5>
+                        <p class="card-text text-muted">
+                            Separate interfaces for recruiters and candidates with tailored experiences.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                            <i data-feather="clock" class="text-warning" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <h5 class="card-title">Time Efficient</h5>
+                        <p class="card-text text-muted">
+                            Reduce time-to-hire with automated interview scheduling and evaluation.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-purple bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                            <i data-feather="bar-chart" class="text-purple" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <h5 class="card-title">Analytics Dashboard</h5>
+                        <p class="card-text text-muted">
+                            Comprehensive analytics to track interview performance and candidate insights.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                            <i data-feather="shield" class="text-danger" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <h5 class="card-title">Secure & Reliable</h5>
+                        <p class="card-text text-muted">
+                            Enterprise-grade security with reliable data protection and privacy compliance.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-5">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">How It Works</h2>
+            <p class="lead text-muted">Simple steps to transform your hiring process</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                    <span class="fw-bold text-primary fs-4">1</span>
+                </div>
+                <h5>Sign Up</h5>
+                <p class="text-muted">Create your account as a recruiter or candidate</p>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                    <span class="fw-bold text-primary fs-4">2</span>
+                </div>
+                <h5>Create Interview</h5>
+                <p class="text-muted">Add job description and let AI generate questions</p>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                    <span class="fw-bold text-primary fs-4">3</span>
+                </div>
+                <h5>Conduct Interview</h5>
+                <p class="text-muted">Candidates take the interview at their convenience</p>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                    <span class="fw-bold text-primary fs-4">4</span>
+                </div>
+                <h5>Get Results</h5>
+                <p class="text-muted">Receive AI-powered scoring and detailed feedback</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5">
+        <div class="bg-primary bg-opacity-10 rounded-3 p-5 text-center">
+            <h2 class="fw-bold mb-3">Ready to Transform Your Hiring?</h2>
+            <p class="lead mb-4">Join thousands of companies using AI to find the best talent</p>
+            <div class="d-flex gap-3 justify-content-center">
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                    Start Free Trial
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                    Sign In
+                </a>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+.min-vh-75 {
+    min-height: 75vh;
+}
+.text-purple {
+    color: #6f42c1 !important;
+}
+.bg-purple {
+    background-color: #6f42c1 !important;
+}
+</style>
+{% endblock %}

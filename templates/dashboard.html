@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AI Interview Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-6 fw-bold">
+                Welcome back, {{ current_user.username }}!
+                <span class="badge bg-{{ 'primary' if current_user.role == 'recruiter' else 'success' }} ms-2">
+                    {{ current_user.role.title() }}
+                </span>
+            </h1>
+            <p class="lead text-muted">
+                {% if user_role == 'recruiter' %}
+                    Manage your interviews and view candidate analytics.
+                {% else %}
+                    Take available interviews and track your progress.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    {% if user_role == 'recruiter' %}
+        <!-- Recruiter Dashboard -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-primary bg-opacity-10 border-primary">
+                    <div class="card-body text-center">
+                        <i data-feather="clipboard" class="mb-2" style="width: 32px; height: 32px;"></i>
+                        <h3 class="fw-bold">{{ interviews|length }}</h3>
+                        <p class="mb-0">Interviews Created</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success bg-opacity-10 border-success">
+                    <div class="card-body text-center">
+                        <i data-feather="users" class="mb-2" style="width: 32px; height: 32px;"></i>
+                        <h3 class="fw-bold">{{ total_responses }}</h3>
+                        <p class="mb-0">Total Responses</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-info bg-opacity-10 border-info">
+                    <div class="card-body text-center">
+                        <i data-feather="trending-up" class="mb-2" style="width: 32px; height: 32px;"></i>
+                        <h3 class="fw-bold">{{ (total_responses / interviews|length)|round(1) if interviews else 0 }}</h3>
+                        <p class="mb-0">Avg Responses/Interview</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i data-feather="zap" class="me-2"></i>
+                            Quick Actions
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('create_interview') }}" class="btn btn-primary">
+                                <i data-feather="plus-circle" class="me-2"></i>
+                                Create New Interview
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interviews List -->
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i data-feather="list" class="me-2"></i>
+                            Your Interviews
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if interviews %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Created</th>
+                                            <th>Responses</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for interview in interviews %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ interview.title }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ interview.job_description[:100] }}...</small>
+                                            </td>
+                                            <td>{{ interview.created_at.strftime('%Y-%m-%d') }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ interview.responses|length }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if interview.is_active else 'secondary' }}">
+                                                    {{ 'Active' if interview.is_active else 'Inactive' }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('candidate_analytics', interview_id=interview.id) }}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i data-feather="bar-chart-2" class="me-1"></i>
+                                                    View Analytics
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i data-feather="clipboard" class="mb-3" style="width: 64px; height: 64px; opacity: 0.3;"></i>
+                                <h4 class="text-muted">No interviews created yet</h4>
+                                <p class="text-muted">Create your first interview to get started with AI-powered hiring.</p>
+                                <a href="{{ url_for('create_interview') }}" class="btn btn-primary">
+                                    <i data-feather="plus-circle" class="me-2"></i>
+                                    Create Your First Interview
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Candidate Dashboard -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card bg-primary bg-opacity-10 border-primary">
+                    <div class="card-body text-center">
+                        <i data-feather="clock" class="mb-2" style="width: 32px; height: 32px;"></i>
+                        <h3 class="fw-bold">{{ available_interviews|length }}</h3>
+                        <p class="mb-0">Available Interviews</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card bg-success bg-opacity-10 border-success">
+                    <div class="card-body text-center">
+                        <i data-feather="check-circle" class="mb-2" style="width: 32px; height: 32px;"></i>
+                        <h3 class="fw-bold">{{ completed_responses|length }}</h3>
+                        <p class="mb-0">Completed Interviews</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Interviews -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i data-feather="play-circle" class="me-2"></i>
+                            Available Interviews
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if available_interviews %}
+                            <div class="row">
+                                {% for interview in available_interviews %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ interview.title }}</h6>
+                                            <p class="card-text text-muted">{{ interview.job_description[:150] }}...</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    <i data-feather="clock" style="width: 16px; height: 16px;"></i>
+                                                    {{ interview.duration_minutes }} minutes
+                                                </small>
+                                                <a href="{{ url_for('interview_interface', interview_id=interview.id) }}" 
+                                                   class="btn btn-primary btn-sm">
+                                                    <i data-feather="play" class="me-1"></i>
+                                                    Start Interview
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i data-feather="calendar" class="mb-3" style="width: 64px; height: 64px; opacity: 0.3;"></i>
+                                <h4 class="text-muted">No interviews available</h4>
+                                <p class="text-muted">Check back later for new interview opportunities.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completed Interviews -->
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i data-feather="archive" class="me-2"></i>
+                            Completed Interviews
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if completed_responses %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Interview Title</th>
+                                            <th>Completed</th>
+                                            <th>Score</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for response in completed_responses %}
+                                        <tr>
+                                            <td>{{ response.interview.title }}</td>
+                                            <td>{{ response.completed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if response.ai_score >= 70 else 'warning' if response.ai_score >= 50 else 'danger' }}">
+                                                    {{ response.ai_score|round(1) }}/100
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('interview_results', response_id=response.id) }}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i data-feather="eye" class="me-1"></i>
+                                                    View Results
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i data-feather="archive" class="mb-3" style="width: 64px; height: 64px; opacity: 0.3;"></i>
+                                <h4 class="text-muted">No completed interviews</h4>
+                                <p class="text-muted">Complete your first interview to see results here.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
