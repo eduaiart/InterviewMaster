@@ -240,26 +240,16 @@ def submit_interview(interview_id):
 @login_required
 def interview_results(response_id):
     """Show interview results"""
-    try:
-        response = InterviewResponse.query.get_or_404(response_id)
-        
-        # Check permissions
-        if (current_user.role == 'candidate' and response.candidate_id != current_user.id) or \
-           (current_user.role == 'recruiter' and response.interview.recruiter_id != current_user.id):
-            flash('Access denied.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        # Safely parse answers JSON
-        try:
-            answers = json.loads(response.answers) if response.answers else []
-        except (json.JSONDecodeError, TypeError):
-            answers = []
-            
-        return render_template('interview_results.html', response=response, answers=answers)
-    except Exception as e:
-        print(f"Error in interview_results: {e}")
-        flash('An error occurred while loading results.', 'error')
+    response = InterviewResponse.query.get_or_404(response_id)
+    
+    # Check permissions
+    if (current_user.role == 'candidate' and response.candidate_id != current_user.id) or \
+       (current_user.role == 'recruiter' and response.interview.recruiter_id != current_user.id):
+        flash('Access denied.', 'error')
         return redirect(url_for('dashboard'))
+    
+    answers = json.loads(response.answers)
+    return render_template('interview_results.html', response=response, answers=answers)
 
 @app.route('/candidates/<int:interview_id>')
 @login_required
