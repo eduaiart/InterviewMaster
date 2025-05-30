@@ -24,6 +24,34 @@
                 </div>
             </div>
 
+            <!-- Video Recording Card -->
+            <div class="card border-info mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-2">
+                                <i data-feather="video" class="me-2"></i>
+                                Video Recording
+                            </h5>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" id="startRecordingBtn" class="btn btn-primary btn-sm">
+                                    <i data-feather="play" class="me-1"></i>
+                                    Start Recording
+                                </button>
+                                <button type="button" id="stopRecordingBtn" class="btn btn-danger btn-sm" style="display: none;">
+                                    <i data-feather="stop" class="me-1"></i>
+                                    Stop Recording
+                                </button>
+                                <span id="recordingStatus" class="badge bg-secondary">Ready</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <video id="videoPreview" width="200" height="150" class="rounded border" style="background: #000;" muted></video>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Timer Card -->
             <div class="card border-warning mb-4">
                 <div class="card-body text-center">
@@ -137,15 +165,139 @@ const totalQuestions = {{ questions|length }};
 let startTime = Date.now();
 let timerInterval;
 
+// Video recording variables
+let mediaRecorder;
+let recordedChunks = [];
+let videoStream;
+
 // Initialize interview
 document.addEventListener('DOMContentLoaded', function() {
     showQuestion(0);
     startTimer();
     updateProgress();
+    initializeVideoRecording();
     
     // Save progress periodically
     setInterval(saveProgress, 30000); // Save every 30 seconds
 });
+
+// Video recording functions
+async function initializeVideoRecording() {
+    try {
+        videoStream = await navigator.mediaDevices.getUserMedia({ 
+            video: true, 
+            audio: true 
+        });
+        
+        document.getElementById('videoPreview').srcObject = videoStream;
+        document.getElementById('recordingStatus').textContent = 'Camera Ready';
+        document.getElementById('recordingStatus').className = 'badge bg-success';
+        
+    } catch (error) {
+        console.error('Error accessing camera:', error);
+        document.getElementById('recordingStatus').textContent = 'Camera Error';
+        document.getElementById('recordingStatus').className = 'badge bg-danger';
+        document.getElementById('startRecordingBtn').disabled = true;
+    }
+}
+
+function startRecording() {
+    if (!videoStream) {
+        alert('Camera not available. Please check your camera permissions.');
+        return;
+    }
+    
+    recordedChunks = [];
+    
+    try {
+        mediaRecorder = new MediaRecorder(videoStream, {
+            mimeType: 'video/webm;codecs=vp9'
+        });
+        
+        mediaRecorder.ondataavailable = function(event) {
+            if (event.data.size > 0) {
+                recordedChunks.push(event.data);
+            }
+        };
+        
+        mediaRecorder.onstop = function() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            uploadVideoRecording(blob);
+        };
+        
+        mediaRecorder.start();
+        
+        // Update UI
+        document.getElementById('startRecordingBtn').style.display = 'none';
+        document.getElementById('stopRecordingBtn').style.display = 'inline-block';
+        document.getElementById('recordingStatus').textContent = 'Recording...';
+        document.getElementById('recordingStatus').className = 'badge bg-danger';
+        
+    } catch (error) {
+        console.error('Error starting recording:', error);
+        alert('Error starting recording. Please try again.');
+    }
+}
+
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        
+        // Update UI
+        document.getElementById('startRecordingBtn').style.display = 'inline-block';
+        document.getElementById('stopRecordingBtn').style.display = 'none';
+        document.getElementById('recordingStatus').textContent = 'Processing...';
+        document.getElementById('recordingStatus').className = 'badge bg-warning';
+    }
+}
+
+async function uploadVideoRecording(blob) {
+    try {
+        const formData = new FormData();
+        formData.append('video', blob, 'interview_recording.webm');
+        formData.append('interview_id', '{{ interview.id }}');
+        formData.append('candidate_id', '{{ current_user.id }}');
+        
+        const response = await fetch('/upload_video_recording', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            document.getElementById('recordingStatus').textContent = 'Uploaded';
+            document.getElementById('recordingStatus').className = 'badge bg-success';
+            
+            // Show AI analysis if available
+            if (result.ai_analysis) {
+                showVideoAnalysis(result.ai_analysis);
+            }
+        } else {
+            throw new Error('Upload failed');
+        }
+        
+    } catch (error) {
+        console.error('Error uploading video:', error);
+        document.getElementById('recordingStatus').textContent = 'Upload Failed';
+        document.getElementById('recordingStatus').className = 'badge bg-danger';
+    }
+}
+
+function showVideoAnalysis(analysis) {
+    // Create a modal or notification to show AI analysis
+    const analysisHtml = `
+        <div class="alert alert-info mt-3">
+            <h6><i data-feather="brain" class="me-2"></i>AI Video Analysis</h6>
+            <p><strong>Confidence Level:</strong> ${analysis.confidence || 'N/A'}</p>
+            <p><strong>Communication Style:</strong> ${analysis.communication_style || 'N/A'}</p>
+            <p><strong>Key Insights:</strong> ${analysis.insights || 'Analysis in progress...'}</p>
+        </div>
+    `;
+    
+    // Insert after video recording card
+    const videoCard = document.querySelector('.card.border-info');
+    videoCard.insertAdjacentHTML('afterend', analysisHtml);
+}
 
 function showQuestion(n) {
     const cards = document.querySelectorAll('.question-card');
@@ -264,6 +416,17 @@ document.addEventListener('keydown', function(e) {
         changeQuestion(-1);
     } else if (e.key === 'ArrowRight' && currentQuestion < totalQuestions - 1) {
         changeQuestion(1);
+    }
+});
+
+// Video recording event listeners
+document.getElementById('startRecordingBtn').addEventListener('click', startRecording);
+document.getElementById('stopRecordingBtn').addEventListener('click', stopRecording);
+
+// Clean up video stream when leaving page
+window.addEventListener('beforeunload', function() {
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
     }
 });
 </script>
