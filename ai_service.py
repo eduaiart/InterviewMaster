@@ -7,8 +7,9 @@ from openai import OpenAI
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     logging.warning("OPENAI_API_KEY not found in environment variables")
-
-openai = OpenAI(api_key=OPENAI_API_KEY)
+    openai = None
+else:
+    openai = OpenAI(api_key=OPENAI_API_KEY)
 
 def generate_interview_questions(job_description, job_title, num_questions=5):
     """
@@ -16,6 +17,42 @@ def generate_interview_questions(job_description, job_title, num_questions=5):
     # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
     # do not change this unless explicitly requested by the user
     """
+    if not openai:
+        logging.error("OpenAI client not initialized - API key missing")
+        # Return fallback questions if AI fails
+        return [
+            {
+                "text": "Tell me about your relevant experience for this role.",
+                "type": "text",
+                "category": "experience",
+                "expected_keywords": ["experience", "skills", "background"]
+            },
+            {
+                "text": "Describe a challenging problem you solved and how you approached it.",
+                "type": "text",
+                "category": "problem-solving",
+                "expected_keywords": ["problem", "solution", "approach", "challenge"]
+            },
+            {
+                "text": "What interests you most about this position and our company?",
+                "type": "text",
+                "category": "motivation",
+                "expected_keywords": ["interest", "motivation", "company", "role"]
+            },
+            {
+                "text": "How do you handle working under pressure or tight deadlines?",
+                "type": "text",
+                "category": "behavioral",
+                "expected_keywords": ["pressure", "deadlines", "stress", "management"]
+            },
+            {
+                "text": "Where do you see yourself in your career in the next 3-5 years?",
+                "type": "text",
+                "category": "goals",
+                "expected_keywords": ["career", "goals", "future", "growth"]
+            }
+        ]
+    
     try:
         prompt = f"""
         Generate {num_questions} professional interview questions for the following job position:
@@ -104,6 +141,34 @@ def score_interview_responses(answers, job_description):
     # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
     # do not change this unless explicitly requested by the user
     """
+    if not openai:
+        logging.error("OpenAI client not initialized - API key missing")
+        # Return basic scoring if AI fails
+        total_length = sum(len(answer_data['answer']) for answer_data in answers.values())
+        avg_length = total_length / len(answers) if answers else 0
+        
+        # Basic scoring based on response length and completeness
+        base_score = min(80, max(20, avg_length / 10))  # 20-80 based on average response length
+        
+        # Bonus for detailed responses
+        if avg_length > 100:
+            base_score += 10
+        
+        feedback = f"""
+        Basic Evaluation Score: {base_score:.1f}/100
+
+        This is a basic evaluation as the AI scoring system requires an OpenAI API key.
+        
+        Response Analysis:
+        - Average response length: {avg_length:.0f} characters
+        - Total responses: {len(answers)}
+        - Completion rate: {'Complete' if all(answer_data['answer'].strip() for answer_data in answers.values()) else 'Incomplete'}
+        
+        For detailed AI-powered evaluation, please provide an OpenAI API key.
+        """
+        
+        return base_score, feedback
+    
     try:
         # Prepare answers for analysis
         answers_text = ""
@@ -223,6 +288,10 @@ def analyze_sentiment(text):
     """
     Analyze sentiment of text using OpenAI
     """
+    if not openai:
+        logging.error("OpenAI client not initialized - API key missing")
+        return {"rating": 3, "confidence": 0.5}
+    
     try:
         response = openai.chat.completions.create(
             model="gpt-4o",
