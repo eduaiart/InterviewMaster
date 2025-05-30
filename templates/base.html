@@ -121,42 +121,9 @@
     
     <!-- Initialize Feather Icons -->
     <script>
-        if (typeof feather !== 'undefined') {
-            feather.replace();
-        }
-    </script>
-    
-    <!-- Simple JavaScript for basic functionality -->
-    <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Auto-save for interview forms
-            const textareas = document.querySelectorAll('textarea');
-            textareas.forEach(function(textarea) {
-                textarea.addEventListener('input', function() {
-                    console.log('Progress saved');
-                });
-            });
-            
-            // Timer functionality for interviews
-            const timer = document.getElementById('timer');
-            if (timer && timer.hasAttribute('data-duration')) {
-                let timeLeft = parseInt(timer.getAttribute('data-duration'));
-                
-                function updateTimer() {
-                    const minutes = Math.floor(timeLeft / 60);
-                    const seconds = timeLeft % 60;
-                    timer.textContent = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
-                    
-                    if (timeLeft <= 0) {
-                        const form = document.getElementById('interviewForm');
-                        if (form) form.submit();
-                        return;
-                    }
-                    timeLeft--;
-                }
-                
-                updateTimer();
-                setInterval(updateTimer, 1000);
+            if (typeof feather !== 'undefined') {
+                feather.replace();
             }
         });
     </script>
