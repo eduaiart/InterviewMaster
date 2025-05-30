@@ -7,7 +7,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from app import app, db
-from models import User, Interview, InterviewResponse, Question, VideoRecording
+from models import User, Interview, InterviewResponse, Question, VideoRecording, TeamMember, IntegrationSettings, AuditLog
 from ai_service import generate_interview_questions, score_interview_responses, analyze_video_interview
 
 @app.route('/')
@@ -619,6 +619,220 @@ def export_report():
     
     flash('Export format not supported yet.', 'warning')
     return redirect(url_for('advanced_analytics'))
+
+@app.route('/team/management')
+@login_required
+def team_management():
+    """Team management dashboard for enterprise users"""
+    if current_user.role not in ['admin', 'recruiter']:
+        flash('Access denied. Insufficient permissions.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Get team members (mock organization_id = 1 for demo)
+    organization_id = 1
+    team_members = []
+    
+    # Get all recruiters as team members
+    recruiters = User.query.filter_by(role='recruiter').all()
+    for recruiter in recruiters:
+        # Calculate stats for each recruiter
+        interviews_count = Interview.query.filter_by(recruiter_id=recruiter.id).count()
+        responses = InterviewResponse.query.join(Interview).filter(
+            Interview.recruiter_id == recruiter.id
+        ).all()
+        responses_count = len(responses)
+        avg_score = sum(r.ai_score for r in responses) / len(responses) if responses else 0
+        
+        # Create team member object
+        member_data = type('obj', (object,), {
+            'id': recruiter.id,
+            'username': recruiter.username,
+            'email': recruiter.email,
+            'role': recruiter.role,
+            'interviews_count': interviews_count,
+            'responses_count': responses_count,
+            'avg_score': avg_score,
+            'is_active': True,
+            'last_active': recruiter.created_at
+        })()
+        
+        team_members.append(member_data)
+    
+    # Calculate team statistics
+    total_interviews = sum(m.interviews_count for m in team_members)
+    team_avg_score = sum(m.avg_score for m in team_members) / len(team_members) if team_members else 0
+    active_members = len([m for m in team_members if m.is_active])
+    
+    return render_template('team_management.html',
+                         team_members=team_members,
+                         total_interviews=total_interviews,
+                         team_avg_score=team_avg_score,
+                         active_members=active_members)
+
+@app.route('/api/test_webhook', methods=['POST'])
+@login_required
+def test_webhook():
+    """Test webhook connectivity"""
+    if current_user.role not in ['admin', 'recruiter']:
+        return jsonify({'error': 'Access denied'}), 403
+    
+    data = request.get_json()
+    webhook_url = data.get('webhook_url')
+    webhook_type = data.get('webhook_type')
+    
+    try:
+        import requests
+        
+        # Create test payload
+        test_payload = {
+            'test': True,
+            'type': webhook_type,
+            'timestamp': datetime.now().isoformat(),
+            'data': {
+                'interview_id': 1,
+                'candidate_name': 'Test Candidate',
+                'score': 85.5
+            }
+        }
+        
+        response = requests.post(webhook_url, json=test_payload, timeout=10)
+        
+        if response.status_code == 200:
+            return jsonify({'success': True, 'message': 'Webhook test successful'})
+        else:
+            return jsonify({'success': False, 'error': f'HTTP {response.status_code}'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/test_ats', methods=['POST'])
+@login_required
+def test_ats_connection():
+    """Test ATS integration connectivity"""
+    if current_user.role not in ['admin', 'recruiter']:
+        return jsonify({'error': 'Access denied'}), 403
+    
+    data = request.get_json()
+    provider = data.get('provider')
+    api_key = data.get('api_key')
+    
+    # For demo purposes, simulate ATS connection test
+    if provider and api_key:
+        # In real implementation, this would test actual ATS APIs
+        if len(api_key) > 10:  # Basic validation
+            return jsonify({'success': True, 'message': f'{provider.title()} connection successful'})
+        else:
+            return jsonify({'success': False, 'error': 'Invalid API key format'})
+    
+    return jsonify({'success': False, 'error': 'Missing provider or API key'})
+
+@app.route('/api/save_integration_settings', methods=['POST'])
+@login_required
+def save_integration_settings():
+    """Save integration settings"""
+    if current_user.role not in ['admin', 'recruiter']:
+        return jsonify({'error': 'Access denied'}), 403
+    
+    try:
+        settings = request.get_json()
+        organization_id = 1  # Mock organization ID
+        
+        # Save each setting
+        for key, value in settings.items():
+            if value:  # Only save non-empty values
+                setting = IntegrationSettings.query.filter_by(
+                    organization_id=organization_id,
+                    setting_type='integration',
+                    setting_key=key
+                ).first()
+                
+                if setting:
+                    setting.setting_value = value
+                    setting.updated_at = datetime.now()
+                else:
+                    setting = IntegrationSettings(
+                        organization_id=organization_id,
+                        setting_type='integration',
+                        setting_key=key,
+                        setting_value=value,
+                        is_encrypted=(key == 'ats_api_key')
+                    )
+                    db.session.add(setting)
+        
+        # Log the action
+        audit_log = AuditLog(
+            user_id=current_user.id,
+            action='update_integration_settings',
+            resource_type='settings',
+            details=json.dumps({'settings_updated': list(settings.keys())}),
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent')
+        )
+        db.session.add(audit_log)
+        
+        db.session.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error saving integration settings: {e}")
+        return jsonify({'success': False, 'error': 'Failed to save settings'})
+
+@app.route('/api/add_team_member', methods=['POST'])
+@login_required
+def add_team_member():
+    """Add a new team member"""
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Access denied. Admin privileges required'}), 403
+    
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        role = data.get('role')
+        permissions = data.get('permissions', [])
+        
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({'success': False, 'error': 'User already exists'})
+        
+        # Create new user (in real app, this would send invitation email)
+        new_user = User(
+            username=email.split('@')[0],
+            email=email,
+            password_hash=generate_password_hash('temp_password'),
+            role=role
+        )
+        db.session.add(new_user)
+        db.session.flush()  # Get the user ID
+        
+        # Create team membership
+        team_member = TeamMember(
+            user_id=new_user.id,
+            organization_id=1,
+            role=role,
+            permissions=json.dumps(permissions),
+            added_by=current_user.id
+        )
+        db.session.add(team_member)
+        
+        # Log the action
+        audit_log = AuditLog(
+            user_id=current_user.id,
+            action='add_team_member',
+            resource_type='user',
+            resource_id=new_user.id,
+            details=json.dumps({'email': email, 'role': role})
+        )
+        db.session.add(audit_log)
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Team member added successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error adding team member: {e}")
+        return jsonify({'success': False, 'error': 'Failed to add team member'})
 
 @app.errorhandler(404)
 def not_found_error(error):

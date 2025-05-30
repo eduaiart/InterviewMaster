@@ -616,6 +616,7 @@ dependencies = [
     { name = "openai" },
     { name = "psycopg2-binary" },
     { name = "pyjwt" },
+    { name = "requests" },
     { name = "sqlalchemy" },
     { name = "werkzeug" },
 ]
@@ -632,6 +633,7 @@ requires-dist = [
     { name = "openai", specifier = ">=1.82.1" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
     { name = "pyjwt", specifier = ">=2.10.1" },
+    { name = "requests", specifier = ">=2.32.3" },
     { name = "sqlalchemy", specifier = ">=2.0.41" },
     { name = "werkzeug", specifier = ">=3.1.3" },
 ]
