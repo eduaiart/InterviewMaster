@@ -286,6 +286,42 @@ def candidate_analytics(interview_id):
                          avg_score=avg_score,
                          avg_time=avg_time)
 
+@app.route('/toggle_interview_status', methods=['POST'])
+@login_required
+def toggle_interview_status():
+    """Toggle interview active/inactive status"""
+    if current_user.role != 'recruiter':
+        return jsonify({'error': 'Access denied. Only recruiters can modify interviews.'}), 403
+    
+    try:
+        data = request.get_json()
+        interview_id = data.get('interview_id')
+        is_active = data.get('is_active')
+        
+        if interview_id is None or is_active is None:
+            return jsonify({'error': 'Missing required data'}), 400
+        
+        interview = Interview.query.get_or_404(interview_id)
+        
+        # Check if recruiter owns this interview
+        if interview.recruiter_id != current_user.id:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        # Update the status
+        interview.is_active = is_active
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f"Interview {'activated' if is_active else 'deactivated'} successfully",
+            'is_active': is_active
+        })
+        
+    except Exception as e:
+        logging.error(f"Error toggling interview status: {e}")
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update interview status'}), 500
+
 @app.route('/upload_video_recording', methods=['POST'])
 @login_required
 def upload_video_recording():

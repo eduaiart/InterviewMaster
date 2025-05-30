@@ -116,11 +116,19 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                <a href="{{ url_for('candidate_analytics', interview_id=interview.id) }}" 
-                                                   class="btn btn-sm btn-outline-primary">
-                                                    <i data-feather="bar-chart-2" class="me-1"></i>
-                                                    View Analytics
-                                                </a>
+                                                <div class="d-flex gap-2">
+                                                    <a href="{{ url_for('candidate_analytics', interview_id=interview.id) }}" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i data-feather="bar-chart-2" class="me-1"></i>
+                                                        View Analytics
+                                                    </a>
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-{{ 'danger' if interview.is_active else 'success' }}"
+                                                            onclick="toggleInterviewStatus({{ interview.id }}, {{ 'true' if interview.is_active else 'false' }})">
+                                                        <i data-feather="{{ 'pause' if interview.is_active else 'play' }}" class="me-1"></i>
+                                                        {{ 'Deactivate' if interview.is_active else 'Activate' }}
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                         {% endfor %}
@@ -270,4 +278,37 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleInterviewStatus(interviewId, currentStatus) {
+    if (!confirm(currentStatus ? 'Are you sure you want to deactivate this interview?' : 'Are you sure you want to activate this interview?')) {
+        return;
+    }
+    
+    fetch('/toggle_interview_status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            interview_id: interviewId,
+            is_active: !currentStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Refresh to show updated status
+        } else {
+            alert('Error updating interview status: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating interview status');
+    });
+}
+</script>
 {% endblock %}
