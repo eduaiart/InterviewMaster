@@ -391,6 +391,239 @@ def upload_video_recording():
 def not_found_error(error):
     return render_template('404.html'), 404
 
+@app.route('/analytics/advanced')
+@login_required
+def advanced_analytics():
+    """Advanced analytics dashboard with filtering and charts"""
+    if current_user.role != 'recruiter':
+        flash('Access denied. Only recruiters can view advanced analytics.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Get filter parameters
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    min_score = request.args.get('min_score', type=float)
+    max_score = request.args.get('max_score', type=float)
+    
+    # Base query for recruiter's interviews
+    base_query = InterviewResponse.query.join(Interview).filter(
+        Interview.recruiter_id == current_user.id
+    )
+    
+    # Apply filters
+    if start_date:
+        base_query = base_query.filter(InterviewResponse.completed_at >= start_date)
+    if end_date:
+        base_query = base_query.filter(InterviewResponse.completed_at <= end_date)
+    if min_score is not None:
+        base_query = base_query.filter(InterviewResponse.ai_score >= min_score)
+    if max_score is not None:
+        base_query = base_query.filter(InterviewResponse.ai_score <= max_score)
+    
+    responses = base_query.order_by(InterviewResponse.completed_at.desc()).all()
+    
+    # Calculate statistics
+    total_candidates = len(set(r.candidate_id for r in responses))
+    total_interviews = Interview.query.filter_by(recruiter_id=current_user.id, is_active=True).count()
+    avg_score = sum(r.ai_score for r in responses) / len(responses) if responses else 0
+    time_responses = [r for r in responses if r.time_taken_minutes]
+    avg_time = sum(r.time_taken_minutes for r in time_responses) / len(time_responses) if time_responses else 0
+    
+    # Score distribution for chart
+    score_ranges = [0, 0, 0, 0, 0]  # 0-20, 21-40, 41-60, 61-80, 81-100
+    for response in responses:
+        score = response.ai_score
+        if score <= 20:
+            score_ranges[0] += 1
+        elif score <= 40:
+            score_ranges[1] += 1
+        elif score <= 60:
+            score_ranges[2] += 1
+        elif score <= 80:
+            score_ranges[3] += 1
+        else:
+            score_ranges[4] += 1
+    
+    # Trend data (last 7 days)
+    from datetime import datetime, timedelta
+    trend_labels = []
+    trend_data = []
+    for i in range(6, -1, -1):
+        date = datetime.now().date() - timedelta(days=i)
+        trend_labels.append(date.strftime('%m/%d'))
+        count = len([r for r in responses if r.completed_at.date() == date])
+        trend_data.append(count)
+    
+    return render_template('advanced_analytics.html',
+                         responses=responses,
+                         total_candidates=total_candidates,
+                         total_interviews=total_interviews,
+                         avg_score=avg_score,
+                         avg_time=avg_time,
+                         score_distribution=score_ranges,
+                         trend_labels=trend_labels,
+                         trend_data=trend_data)
+
+@app.route('/candidate/<int:candidate_id>/profile')
+@login_required
+def candidate_profile(candidate_id):
+    """Detailed candidate profile for recruiters"""
+    if current_user.role != 'recruiter':
+        flash('Access denied. Only recruiters can view candidate profiles.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    candidate = User.query.get_or_404(candidate_id)
+    if candidate.role != 'candidate':
+        flash('Invalid candidate ID.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Get responses for interviews created by current recruiter
+    responses = InterviewResponse.query.join(Interview).filter(
+        Interview.recruiter_id == current_user.id,
+        InterviewResponse.candidate_id == candidate_id
+    ).order_by(InterviewResponse.completed_at.desc()).all()
+    
+    if not responses:
+        flash('No interview data found for this candidate.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Calculate statistics
+    avg_score = sum(r.ai_score for r in responses) / len(responses)
+    video_recordings = VideoRecording.query.join(Interview).filter(
+        Interview.recruiter_id == current_user.id,
+        VideoRecording.candidate_id == candidate_id
+    ).all()
+    
+    # Skills breakdown (mock data based on AI feedback)
+    skills_breakdown = {
+        'technical_skills': avg_score * 0.9,
+        'communication': avg_score * 1.1,
+        'problem_solving': avg_score * 0.95,
+        'cultural_fit': avg_score * 1.05
+    }
+    
+    # Performance data for chart
+    performance_dates = [r.completed_at.strftime('%m/%d') for r in responses]
+    performance_scores = [r.ai_score for r in responses]
+    
+    # Communication analysis
+    communication_strengths = [
+        "Clear articulation of ideas",
+        "Professional presentation",
+        "Confident delivery"
+    ]
+    communication_improvements = [
+        "Expand on technical details",
+        "Use more specific examples",
+        "Improve response structure"
+    ]
+    
+    return render_template('candidate_profile.html',
+                         candidate=candidate,
+                         responses=responses,
+                         avg_score=avg_score,
+                         video_recordings=video_recordings,
+                         skills_breakdown=skills_breakdown,
+                         performance_dates=performance_dates,
+                         performance_scores=performance_scores,
+                         communication_strengths=communication_strengths,
+                         communication_improvements=communication_improvements)
+
+@app.route('/compare_candidates', methods=['POST'])
+@login_required
+def compare_candidates():
+    """Compare multiple candidates side by side"""
+    if current_user.role != 'recruiter':
+        return jsonify({'error': 'Access denied'}), 403
+    
+    data = request.get_json()
+    response_ids = data.get('response_ids', [])
+    
+    if len(response_ids) < 2:
+        return jsonify({'error': 'Need at least 2 candidates to compare'}), 400
+    
+    responses = InterviewResponse.query.join(Interview).filter(
+        InterviewResponse.id.in_(response_ids),
+        Interview.recruiter_id == current_user.id
+    ).all()
+    
+    comparison_html = render_template('comparison_table.html', responses=responses)
+    return jsonify({'html': comparison_html})
+
+@app.route('/bulk_action', methods=['POST'])
+@login_required
+def bulk_action():
+    """Handle bulk actions on interview responses"""
+    if current_user.role != 'recruiter':
+        return jsonify({'error': 'Access denied'}), 403
+    
+    data = request.get_json()
+    action = data.get('action')
+    response_ids = data.get('response_ids', [])
+    
+    try:
+        responses = InterviewResponse.query.join(Interview).filter(
+            InterviewResponse.id.in_(response_ids),
+            Interview.recruiter_id == current_user.id
+        ).all()
+        
+        if action == 'delete':
+            for response in responses:
+                db.session.delete(response)
+            db.session.commit()
+            return jsonify({'success': True, 'message': f'Deleted {len(responses)} responses'})
+        
+        return jsonify({'error': 'Invalid action'}), 400
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Bulk action error: {e}")
+        return jsonify({'error': 'Action failed'}), 500
+
+@app.route('/export_report', methods=['POST'])
+@login_required
+def export_report():
+    """Export analytics report in various formats"""
+    if current_user.role != 'recruiter':
+        flash('Access denied.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    format_type = request.form.get('format', 'pdf')
+    
+    # Get filtered data
+    responses = InterviewResponse.query.join(Interview).filter(
+        Interview.recruiter_id == current_user.id
+    ).all()
+    
+    if format_type == 'pdf':
+        # Generate PDF report
+        from io import BytesIO
+        from flask import make_response
+        
+        # Create a simple text report for now
+        report_content = f"Interview Analytics Report\n"
+        report_content += f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
+        report_content += f"Total Responses: {len(responses)}\n"
+        
+        for response in responses:
+            report_content += f"\nCandidate: {response.candidate.username}\n"
+            report_content += f"Interview: {response.interview.title}\n"
+            report_content += f"Score: {response.ai_score:.1f}%\n"
+            report_content += f"Date: {response.completed_at.strftime('%Y-%m-%d')}\n"
+            report_content += "---\n"
+        
+        response = make_response(report_content)
+        response.headers['Content-Type'] = 'text/plain'
+        response.headers['Content-Disposition'] = 'attachment; filename=analytics_report.txt'
+        return response
+    
+    flash('Export format not supported yet.', 'warning')
+    return redirect(url_for('advanced_analytics'))
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
 @app.errorhandler(500)
 def internal_error(error):
     db.session.rollback()

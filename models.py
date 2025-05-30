@@ -67,3 +67,44 @@ class VideoRecording(db.Model):
     # Relationships
     interview = db.relationship('Interview', backref='video_recordings')
     candidate = db.relationship('User', backref='video_recordings')
+
+class TeamMember(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    organization_id = db.Column(db.Integer, nullable=False)  # For multi-tenant support
+    role = db.Column(db.String(50), nullable=False, default='recruiter')  # admin, recruiter, viewer
+    permissions = db.Column(db.Text)  # JSON string of permissions
+    is_active = db.Column(db.Boolean, default=True)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+    added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    last_active = db.Column(db.DateTime)
+    
+    # Relationships
+    user = db.relationship('User', foreign_keys=[user_id], backref='team_memberships')
+    added_by_user = db.relationship('User', foreign_keys=[added_by])
+
+class IntegrationSettings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, nullable=False)
+    setting_type = db.Column(db.String(50), nullable=False)  # webhook, ats, etc.
+    setting_key = db.Column(db.String(100), nullable=False)
+    setting_value = db.Column(db.Text)
+    is_encrypted = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    __table_args__ = (db.UniqueConstraint('organization_id', 'setting_type', 'setting_key', name='_org_setting_uc'),)
+
+class AuditLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    action = db.Column(db.String(100), nullable=False)
+    resource_type = db.Column(db.String(50), nullable=False)
+    resource_id = db.Column(db.Integer)
+    details = db.Column(db.Text)  # JSON string with additional details
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref='audit_logs')
