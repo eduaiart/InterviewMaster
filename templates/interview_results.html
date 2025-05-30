@@ -48,7 +48,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="bg-light p-4 rounded">
+                    <div class="bg-dark p-4 rounded">
                         {{ response.ai_feedback|replace('\n', '<br>')|safe }}
                     </div>
                 </div>
@@ -102,7 +102,7 @@
                             </div>
                             <div class="col-md-11">
                                 <h6 class="fw-bold mb-2">{{ answer_data.question }}</h6>
-                                <div class="bg-light p-3 rounded">
+                                <div class="bg-dark p-3 rounded">
                                     {% if answer_data.answer.strip() %}
                                         <p class="mb-0">{{ answer_data.answer }}</p>
                                     {% else %}
@@ -151,7 +151,7 @@
 
             <!-- Export Options (for recruiters) -->
             {% if current_user.role == 'recruiter' %}
-            <div class="card border-0 bg-light">
+            <div class="card border-0 bg-dark">
                 <div class="card-body">
                     <h6 class="mb-3">
                         <i data-feather="download" class="me-2"></i>
