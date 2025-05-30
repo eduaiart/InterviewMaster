@@ -184,21 +184,92 @@ document.addEventListener('DOMContentLoaded', function() {
 // Video recording functions
 async function initializeVideoRecording() {
     try {
+        // Check if getUserMedia is supported
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('Camera access not supported in this browser');
+        }
+        
+        // Request camera and microphone access
         videoStream = await navigator.mediaDevices.getUserMedia({ 
-            video: true, 
+            video: { 
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                facingMode: 'user'
+            }, 
             audio: true 
         });
         
-        document.getElementById('videoPreview').srcObject = videoStream;
+        const videoPreview = document.getElementById('videoPreview');
+        videoPreview.srcObject = videoStream;
+        
+        // Ensure video plays
+        videoPreview.onloadedmetadata = function(e) {
+            videoPreview.play();
+        };
+        
         document.getElementById('recordingStatus').textContent = 'Camera Ready';
         document.getElementById('recordingStatus').className = 'badge bg-success';
         
     } catch (error) {
         console.error('Error accessing camera:', error);
-        document.getElementById('recordingStatus').textContent = 'Camera Error';
+        
+        let errorMessage = 'Camera Error';
+        if (error.name === 'NotAllowedError') {
+            errorMessage = 'Camera Permission Denied';
+        } else if (error.name === 'NotFoundError') {
+            errorMessage = 'No Camera Found';
+        } else if (error.name === 'NotSupportedError') {
+            errorMessage = 'Camera Not Supported';
+        }
+        
+        document.getElementById('recordingStatus').textContent = errorMessage;
         document.getElementById('recordingStatus').className = 'badge bg-danger';
         document.getElementById('startRecordingBtn').disabled = true;
+        
+        // Show user-friendly error message
+        showCameraErrorMessage(error);
     }
+}
+
+function showCameraErrorMessage(error) {
+    const errorHtml = `
+        <div class="alert alert-warning mt-3" id="cameraErrorAlert">
+            <h6><i data-feather="alert-triangle" class="me-2"></i>Camera Access Issue</h6>
+            <p><strong>Error:</strong> ${error.message}</p>
+            <p>To enable video recording:</p>
+            <ul>
+                <li>Click the camera icon in your browser's address bar</li>
+                <li>Select "Allow" for camera and microphone access</li>
+                <li>Refresh the page after granting permissions</li>
+            </ul>
+            <button class="btn btn-sm btn-primary" onclick="retryCamera()">
+                <i data-feather="refresh-cw" class="me-1"></i>Try Again
+            </button>
+        </div>
+    `;
+    
+    const videoCard = document.querySelector('.card.border-info');
+    videoCard.insertAdjacentHTML('afterend', errorHtml);
+    
+    // Replace feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+function retryCamera() {
+    // Remove error message
+    const errorAlert = document.getElementById('cameraErrorAlert');
+    if (errorAlert) {
+        errorAlert.remove();
+    }
+    
+    // Re-enable button and retry
+    document.getElementById('startRecordingBtn').disabled = false;
+    document.getElementById('recordingStatus').textContent = 'Retrying...';
+    document.getElementById('recordingStatus').className = 'badge bg-warning';
+    
+    initializeVideoRecording();
 }
 
 function startRecording() {
