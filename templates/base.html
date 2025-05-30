@@ -13,7 +13,7 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/interview-fix.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fix-visibility.css') }}">
 </head>
 <body>
     <!-- Navigation -->
@@ -124,7 +124,9 @@
     
     <!-- Initialize Feather Icons -->
     <script>
-        feather.replace();
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
     </script>
 
     {% block scripts %}{% endblock %}
