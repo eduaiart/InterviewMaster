@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Interview - {{ interview.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Schedule Interview: {{ interview.title }}</h4>
+                    <p class="mb-0 text-muted">{{ interview.job_description[:100] }}...</p>
+                </div>
+                <div class="card-body">
+                    <form id="scheduleForm">
+                        <input type="hidden" name="interview_id" value="{{ interview.id }}">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Select Candidate</label>
+                            <select class="form-select" name="candidate_id" required>
+                                <option value="">Choose a candidate...</option>
+                                {% for candidate in candidates %}
+                                <option value="{{ candidate.id }}">{{ candidate.username }} ({{ candidate.email }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Interview Date & Time</label>
+                            <input type="datetime-local" class="form-control" name="scheduled_datetime" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Duration (minutes)</label>
+                            <select class="form-select" name="duration_minutes">
+                                <option value="30">30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60" selected>1 hour</option>
+                                <option value="90">1.5 hours</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Time Zone</label>
+                            <select class="form-select" name="time_zone">
+                                <option value="UTC">UTC</option>
+                                <option value="America/New_York">Eastern Time</option>
+                                <option value="America/Chicago">Central Time</option>
+                                <option value="America/Denver">Mountain Time</option>
+                                <option value="America/Los_Angeles">Pacific Time</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" name="notes" rows="3" 
+                                    placeholder="Any special instructions or notes for the interview..."></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i data-feather="calendar" class="me-1"></i>
+                                Schedule Interview
+                            </button>
+                            <a href="{{ url_for('schedule_dashboard') }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    
+    fetch('/schedule/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Interview scheduled successfully!');
+            window.location.href = '/schedule';
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error scheduling interview: ' + error);
+    });
+});
+</script>
+{% endblock %}
