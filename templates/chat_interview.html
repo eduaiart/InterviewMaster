@@ -6,32 +6,32 @@
 <div class="container-fluid h-100">
     <div class="row h-100">
         <!-- Interview Info Sidebar -->
-        <div class="col-md-3 bg-light border-end h-100">
+        <div class="col-md-3 sidebar-panel border-end h-100">
             <div class="p-3">
-                <h5 class="fw-bold mb-3">{{ interview.title }}</h5>
+                <h5 class="fw-bold mb-3 sidebar-title">{{ interview.title }}</h5>
                 <div class="interview-info">
                     <div class="info-item mb-3">
-                        <small class="text-muted">Duration</small>
-                        <div class="fw-bold">{{ interview.duration_minutes }} minutes</div>
+                        <small class="sidebar-label">Duration</small>
+                        <div class="fw-bold sidebar-value">{{ interview.duration_minutes }} minutes</div>
                     </div>
                     <div class="info-item mb-3">
-                        <small class="text-muted">Time Remaining</small>
-                        <div class="fw-bold text-primary" id="timeRemaining">{{ interview.duration_minutes }}:00</div>
+                        <small class="sidebar-label">Time Remaining</small>
+                        <div class="fw-bold text-primary sidebar-value" id="timeRemaining">{{ interview.duration_minutes }}:00</div>
                     </div>
                     <div class="info-item mb-3">
-                        <small class="text-muted">Progress</small>
+                        <small class="sidebar-label">Progress</small>
                         <div class="progress mb-2">
-                            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                            <div class="progress-bar bg-primary" id="progressBar" style="width: 0%"></div>
                         </div>
-                        <small id="progressText">0 of {{ questions|length }} questions</small>
+                        <small class="sidebar-progress" id="progressText">0 of {{ questions|length }} questions</small>
                     </div>
                 </div>
                 
-                <hr>
+                <hr class="sidebar-divider">
                 
                 <div class="tips">
-                    <h6 class="fw-bold mb-2">💡 Tips</h6>
-                    <ul class="small text-muted list-unstyled">
+                    <h6 class="fw-bold mb-2 sidebar-tips-title">💡 Tips</h6>
+                    <ul class="sidebar-tips-list list-unstyled">
                         <li class="mb-1">• Be concise and specific</li>
                         <li class="mb-1">• Use examples when possible</li>
                         <li class="mb-1">• Take your time to think</li>
@@ -44,7 +44,7 @@
         <!-- Chat Interface -->
         <div class="col-md-9 d-flex flex-column h-100">
             <!-- Chat Header -->
-            <div class="chat-header p-3 border-bottom bg-white">
+            <div class="chat-header p-3 border-bottom bg-blue">
                 <div class="d-flex align-items-center">
                     <div class="ai-avatar me-3">
                         <i class="fas fa-robot"></i>
@@ -306,6 +306,55 @@
     margin-bottom: 5px;
     color: #007bff;
     font-weight: bold;
+}
+
+/* Sidebar Styling */
+.sidebar-panel {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+}
+
+.sidebar-title {
+    color: #ecf0f1;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.sidebar-label {
+    color: #bdc3c7;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-value {
+    color: #ecf0f1;
+    font-size: 16px;
+}
+
+.sidebar-progress {
+    color: #bdc3c7;
+    font-size: 12px;
+}
+
+.sidebar-divider {
+    border-color: #34495e;
+    margin: 20px 0;
+}
+
+.sidebar-tips-title {
+    color: #f39c12;
+    font-size: 14px;
+}
+
+.sidebar-tips-list {
+    font-size: 12px;
+    color: #bdc3c7;
+}
+
+.sidebar-tips-list li {
+    margin-bottom: 8px;
+    padding-left: 5px;
 }
 </style>
 
