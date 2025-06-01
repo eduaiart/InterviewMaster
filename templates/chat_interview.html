@@ -413,7 +413,6 @@ function askNextQuestion() {
         setTimeout(() => {
             hideTypingIndicator();
             addAIMessage(question.text);
-            currentQuestionIndex++;
             updateProgress();
         }, 1500);
     } else {
@@ -431,14 +430,17 @@ function sendMessage() {
         
         // Store response
         responses.push({
-            question_index: currentQuestionIndex - 1,
-            question: questions[currentQuestionIndex - 1]?.text || '',
+            question_index: currentQuestionIndex,
+            question: questions[currentQuestionIndex]?.text || '',
             answer: message,
             timestamp: new Date().toISOString()
         });
         
         // Clear input
         input.value = '';
+        
+        // Move to next question
+        currentQuestionIndex++;
         
         // Analyze response and ask next question
         setTimeout(() => {
@@ -514,10 +516,11 @@ function hideTypingIndicator() {
 }
 
 function updateProgress() {
-    const progress = (currentQuestionIndex / questions.length) * 100;
+    const answeredQuestions = responses.length;
+    const progress = (answeredQuestions / questions.length) * 100;
     document.getElementById('progressBar').style.width = progress + '%';
     document.getElementById('progressText').textContent = 
-        `${currentQuestionIndex} of ${questions.length} questions`;
+        `${answeredQuestions} of ${questions.length} questions`;
 }
 
 function endInterview() {
