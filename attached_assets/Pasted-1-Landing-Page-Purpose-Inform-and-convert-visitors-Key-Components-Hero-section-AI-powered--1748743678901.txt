@@ -1,0 +1,113 @@
+1. Landing Page (/)
+Purpose: Inform and convert visitors
+Key Components:
+
+Hero section: “AI-powered Interview Tool”
+
+Value propositions (automated interviews, smart scoring, etc.)
+
+Demo Video or Screenshots
+
+CTA buttons: “Try Free”, “Schedule Demo”
+
+Navigation bar (Login, Signup, Pricing)
+
+2. Signup / Login (/signup, /login)
+Purpose: Authenticate users
+Key Components:
+
+Email/Password fields
+
+Social login (Google OAuth - optional)
+
+User role: Candidate or Recruiter
+
+🔧 Tech Tip: Use Flask-Login and SQLite for storing users.
+
+3. Dashboard (Role-Based: /dashboard)
+Purpose: Central hub
+For Recruiters:
+
+Upload job descriptions
+
+View interview templates
+
+See candidate analytics
+
+Schedule new interview rounds
+
+For Candidates:
+
+View scheduled interviews
+
+Start mock or real interview
+
+View feedback/results
+
+4. Interview Builder (/interview/create)
+Purpose: Let recruiters configure interviews
+Components:
+
+Job title and description input
+
+Auto-generated questions (use OpenAI or static templates)
+
+Question types: video, text, multiple-choice
+
+Duration, skill weight setup
+
+5. Interview Interface (/interview/start/<id>)
+Purpose: Candidate takes the interview
+Components:
+
+AI chatbot or scripted question UI
+
+Webcam/video recorder (for async video answers)
+
+Text input for written responses
+
+Timer
+
+🔧 Tech Tip: Use JavaScript webcam libraries + Flask endpoint for answer uploads
+
+6. Evaluation Page (/interview/result/<id>)
+Purpose: AI scores candidate answers
+Components:
+
+NLP scoring module (keyword match, sentiment, etc.)
+
+Score breakdown by question
+
+Recommendation summary
+
+Export as PDF / send to ATS
+
+7. Candidate Analytics Page (/candidates)
+Purpose: View all applicants for a job
+Components:
+
+Table: Name, Score, Status, Comments
+
+Filters: Job title, score range, date
+
+Comparison view (side-by-side answers)
+
+8. Settings / ATS Integration (/settings)
+Purpose: Manage integrations and profile
+Components:
+
+Profile info
+
+API keys / webhooks
+
+ATS mock connector or download JSON button
+
+9. Pricing Page (/pricing)
+Purpose: Convert users to paid plan
+Components:
+
+Free vs Pro feature comparison
+
+Payment gateway (Stripe integration)
+
+Testimonials
