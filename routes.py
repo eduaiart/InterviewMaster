@@ -1063,6 +1063,126 @@ def update_settings():
     
     return redirect(url_for('settings'))
 
+@app.route('/interview/<int:interview_id>/chat')
+@login_required
+def chat_interview(interview_id):
+    """Chat-based interview interface for candidates"""
+    if current_user.role != 'candidate':
+        flash('Access denied. Only candidates can take interviews.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    interview = Interview.query.get_or_404(interview_id)
+    
+    # Check if already completed
+    existing_response = InterviewResponse.query.filter_by(
+        interview_id=interview_id, 
+        candidate_id=current_user.id
+    ).first()
+    
+    if existing_response:
+        flash('You have already completed this interview.', 'info')
+        return redirect(url_for('interview_results', response_id=existing_response.id))
+    
+    questions = json.loads(interview.questions)
+    return render_template('chat_interview.html', interview=interview, questions=questions)
+
+@app.route('/interview/<int:interview_id>/chat/submit', methods=['POST'])
+@login_required
+def submit_chat_interview(interview_id):
+    """Submit chat interview responses with real-time AI analysis"""
+    if current_user.role != 'candidate':
+        return jsonify({'error': 'Access denied'}), 403
+    
+    interview = Interview.query.get_or_404(interview_id)
+    
+    # Check if already completed
+    existing_response = InterviewResponse.query.filter_by(
+        interview_id=interview_id, 
+        candidate_id=current_user.id
+    ).first()
+    
+    if existing_response:
+        return jsonify({'error': 'Interview already completed'}), 400
+    
+    try:
+        data = request.get_json()
+        responses = data.get('responses', [])
+        time_taken = data.get('time_taken', 0)
+        
+        # Format responses for storage
+        formatted_answers = {}
+        for i, response in enumerate(responses):
+            formatted_answers[str(i)] = {
+                'question': response.get('question', ''),
+                'answer': response.get('answer', ''),
+                'timestamp': response.get('timestamp', ''),
+                'response_type': 'chat'
+            }
+        
+        # Perform AI analysis on chat responses
+        score, feedback = score_interview_responses(formatted_answers, interview.job_description)
+        
+        # Generate instant feedback for chat format
+        instant_feedback = generate_instant_chat_feedback(responses)
+        
+        # Save response
+        response = InterviewResponse(
+            interview_id=interview_id,
+            candidate_id=current_user.id,
+            answers=json.dumps(formatted_answers),
+            ai_score=score,
+            ai_feedback=feedback,
+            time_taken_minutes=int(time_taken) if time_taken else None
+        )
+        
+        db.session.add(response)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'score': score,
+            'feedback': instant_feedback,
+            'response_id': response.id
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Chat interview submission error: {e}")
+        return jsonify({'error': 'Failed to submit interview'}), 500
+
+def generate_instant_chat_feedback(responses):
+    """Generate instant feedback for chat interviews using AI analysis"""
+    try:
+        from openai import OpenAI
+        import os
+        
+        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        
+        # Combine all responses for analysis
+        combined_text = " ".join([resp.get('answer', '') for resp in responses])
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an AI interview analyst. Provide brief, encouraging instant feedback for a candidate who just completed a chat interview. Focus on communication style, personality traits, and overall impression. Keep it positive and constructive, around 2-3 sentences."
+                },
+                {
+                    "role": "user", 
+                    "content": f"Analyze these interview responses and provide instant feedback: {combined_text[:1000]}"
+                }
+            ],
+            max_tokens=150,
+            temperature=0.7
+        )
+        
+        return response.choices[0].message.content
+        
+    except Exception as e:
+        logging.error(f"Error generating instant feedback: {e}")
+        return "Thank you for completing the interview! Your responses show good communication skills and thoughtful answers. We'll be in touch soon with next steps."
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404

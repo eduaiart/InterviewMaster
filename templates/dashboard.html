@@ -130,6 +130,20 @@
                                                         <i data-feather="bar-chart-2" class="me-1"></i>
                                                         View Analytics
                                                     </a>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-sm btn-outline-info dropdown-toggle" 
+                                                                data-bs-toggle="dropdown">
+                                                            Interview Types
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li><a class="dropdown-item" href="{{ url_for('interview_interface', interview_id=interview.id) }}">
+                                                                <i data-feather="edit" class="me-1"></i>Text Interview
+                                                            </a></li>
+                                                            <li><a class="dropdown-item" href="{{ url_for('chat_interview', interview_id=interview.id) }}">
+                                                                <i data-feather="message-circle" class="me-1"></i>Chat Interview
+                                                            </a></li>
+                                                        </ul>
+                                                    </div>
                                                     <button type="button" 
                                                             class="btn btn-sm btn-outline-{{ 'danger' if interview.is_active else 'success' }}"
                                                             onclick="toggleInterviewStatus({{ interview.id }}, {{ 'true' if interview.is_active else 'false' }})">
