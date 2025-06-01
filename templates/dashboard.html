@@ -220,11 +220,20 @@
                                                     <i data-feather="clock" style="width: 16px; height: 16px;"></i>
                                                     {{ interview.duration_minutes }} minutes
                                                 </small>
-                                                <a href="{{ url_for('interview_interface', interview_id=interview.id) }}" 
-                                                   class="btn btn-primary btn-sm">
-                                                    <i data-feather="play" class="me-1"></i>
-                                                    Start Interview
-                                                </a>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                                        <i data-feather="play" class="me-1"></i>
+                                                        Start Interview
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li><a class="dropdown-item" href="{{ url_for('interview_interface', interview_id=interview.id) }}">
+                                                            <i data-feather="edit" style="width: 16px; height: 16px;" class="me-2"></i>Text Interview
+                                                        </a></li>
+                                                        <li><a class="dropdown-item" href="{{ url_for('chat_interview', interview_id=interview.id) }}">
+                                                            <i data-feather="message-circle" style="width: 16px; height: 16px;" class="me-2"></i>Chat Interview
+                                                        </a></li>
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
