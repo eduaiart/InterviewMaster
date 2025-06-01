@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}AI Interview Platform{% endblock %}</title>
+    <title>{% block title %}TalentIQ{% endblock %}</title>
     
     <!-- Bootstrap CSS with Replit theme -->
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
@@ -14,14 +14,57 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/interview-fix.css') }}">
+    
+    <style>
+        .talentiq-logo {
+            display: inline-flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-decoration: none;
+            color: #667eea;
+        }
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            position: relative;
+        }
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .logo-icon::after {
+            content: 'IQ';
+            position: absolute;
+            font-size: 10px;
+            font-weight: bold;
+            color: #667eea;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
-                <i data-feather="zap" class="me-2"></i>
-                AI Interview Platform
+            <a class="navbar-brand talentiq-logo" href="{{ url_for('index') }}">
+                <div class="logo-icon"></div>
+                TalentIQ
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -119,11 +162,14 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>AI Interview Platform</h5>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="logo-icon me-2"></div>
+                        <h5 class="mb-0">TalentIQ</h5>
+                    </div>
                     <p class="text-muted">Streamlining the interview process with artificial intelligence.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="text-muted mb-0">© 2024 AI Interview Platform. All rights reserved.</p>
+                    <p class="text-muted mb-0">© 2024 TalentIQ. All rights reserved.</p>
                 </div>
             </div>
         </div>
