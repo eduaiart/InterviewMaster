@@ -68,7 +68,7 @@
                         <i class="fas fa-robot"></i>
                     </div>
                     <div class="message-content">
-                        <div class="message-bubble">
+                        <div class="message-bubble ai-bubble">
                             Hello! I'm your AI interviewer for today. I'll be asking you some questions to get to know you better and understand your qualifications for this role. 
                             <br><br>
                             Are you ready to begin?
@@ -157,6 +157,7 @@
 .chat-messages {
     overflow-y: auto;
     background: #f8f9fa;
+    min-height: 400px;
 }
 
 .message {
@@ -197,17 +198,30 @@
     max-width: 70%;
 }
 
-.message-bubble {
-    background: white;
+.ai-bubble {
+    background: #e3f2fd !important;
+    color: #1565c0 !important;
+    border: 1px solid #bbdefb !important;
     padding: 12px 16px;
     border-radius: 18px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     margin-bottom: 5px;
 }
 
+.message-bubble {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 5px;
+    color: #333;
+    border: 1px solid #e9ecef;
+}
+
 .user-message .message-bubble {
     background: #007bff;
     color: white;
+    border: 1px solid #0056b3;
 }
 
 .message-time {
@@ -402,7 +416,7 @@ function addAIMessage(text) {
             <i class="fas fa-robot"></i>
         </div>
         <div class="message-content">
-            <div class="message-bubble">${text}</div>
+            <div class="message-bubble ai-bubble">${text}</div>
             <div class="message-time">Just now</div>
         </div>
     `;
