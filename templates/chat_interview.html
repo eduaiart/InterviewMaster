@@ -412,11 +412,28 @@ function askNextQuestion() {
         
         setTimeout(() => {
             hideTypingIndicator();
-            addAIMessage(question.text);
+            
+            // Add indicator for final question
+            if (currentQuestionIndex === questions.length - 1) {
+                addAIMessage(`This is our final question: ${question.text}`);
+            } else {
+                addAIMessage(question.text);
+            }
+            
             updateProgress();
         }, 1500);
     } else {
-        endInterview();
+        // End interview after all questions are answered
+        setTimeout(() => {
+            showTypingIndicator();
+            setTimeout(() => {
+                hideTypingIndicator();
+                addAIMessage("Thank you for completing all the questions! Your interview is now complete.");
+                setTimeout(() => {
+                    endInterview();
+                }, 2000);
+            }, 1000);
+        }, 1000);
     }
 }
 
@@ -519,8 +536,14 @@ function updateProgress() {
     const answeredQuestions = responses.length;
     const progress = (answeredQuestions / questions.length) * 100;
     document.getElementById('progressBar').style.width = progress + '%';
-    document.getElementById('progressText').textContent = 
-        `${answeredQuestions} of ${questions.length} questions`;
+    
+    if (answeredQuestions === questions.length) {
+        document.getElementById('progressText').textContent = 
+            `Interview Complete - ${answeredQuestions} of ${questions.length} questions`;
+    } else {
+        document.getElementById('progressText').textContent = 
+            `${answeredQuestions} of ${questions.length} questions`;
+    }
 }
 
 function endInterview() {
