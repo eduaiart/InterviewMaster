@@ -1,8 +1,99 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview Platform - Revolutionize Your Hiring Process</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .stats-counter {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .testimonial-card {
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+        }
+        .pricing-card {
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .pricing-card:hover, .pricing-card.featured {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            color: white;
+        }
+        .section-padding {
+            padding: 80px 0;
+        }
+        .company-logo {
+            height: 40px;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+        .company-logo:hover {
+            opacity: 1;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i data-feather="zap" class="me-2"></i>AI Interview Platform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#solutions">Solutions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#pricing">Pricing</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#testimonials">Testimonials</a></li>
+                </ul>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-gradient">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-{% block title %}Welcome - AI Interview Platform{% endblock %}
-
-{% block content %}
+    <!-- Hero Section -->
+    <section class="hero-gradient text-white section-padding" style="margin-top: 76px;">
 <div class="container">
     <!-- Hero Section -->
     <div class="row align-items-center min-vh-75">

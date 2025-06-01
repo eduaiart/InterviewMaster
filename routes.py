@@ -15,7 +15,7 @@ def index():
     """Landing page - shows different content based on user role"""
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
-    return render_template('index.html')
+    return render_template('landing.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
