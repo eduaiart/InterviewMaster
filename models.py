@@ -108,3 +108,49 @@ class AuditLog(db.Model):
     
     # Relationships
     user = db.relationship('User', backref='audit_logs')
+
+class InterviewSchedule(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    interview_id = db.Column(db.Integer, db.ForeignKey('interview.id'), nullable=False)
+    candidate_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    recruiter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    scheduled_datetime = db.Column(db.DateTime, nullable=False)
+    duration_minutes = db.Column(db.Integer, default=60)
+    status = db.Column(db.String(20), default='scheduled')  # scheduled, confirmed, completed, cancelled
+    meeting_link = db.Column(db.String(500))  # For video interviews
+    calendar_event_id = db.Column(db.String(255))  # Google Calendar event ID
+    time_zone = db.Column(db.String(50), default='UTC')
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    interview = db.relationship('Interview', backref='schedules')
+    candidate = db.relationship('User', foreign_keys=[candidate_id], backref='candidate_schedules')
+    recruiter = db.relationship('User', foreign_keys=[recruiter_id], backref='recruiter_schedules')
+
+class AvailabilitySlot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    day_of_week = db.Column(db.Integer, nullable=False)  # 0=Monday, 6=Sunday
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+    time_zone = db.Column(db.String(50), default='UTC')
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='availability_slots')
+
+class ScheduleNotification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    schedule_id = db.Column(db.Integer, db.ForeignKey('interview_schedule.id'), nullable=False)
+    notification_type = db.Column(db.String(20), nullable=False)  # email, sms
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    send_at = db.Column(db.DateTime, nullable=False)
+    sent_at = db.Column(db.DateTime)
+    status = db.Column(db.String(20), default='pending')  # pending, sent, failed
+    message_content = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    schedule = db.relationship('InterviewSchedule', backref='notifications')
+    recipient = db.relationship('User', backref='schedule_notifications')

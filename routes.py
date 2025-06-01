@@ -1,13 +1,13 @@
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from app import app, db
-from models import User, Interview, InterviewResponse, Question, VideoRecording, TeamMember, IntegrationSettings, AuditLog
+from models import User, Interview, InterviewResponse, Question, VideoRecording, TeamMember, IntegrationSettings, AuditLog, InterviewSchedule, AvailabilitySlot, ScheduleNotification
 from ai_service import generate_interview_questions, score_interview_responses, analyze_video_interview
 
 @app.route('/')
@@ -1182,6 +1182,217 @@ def generate_instant_chat_feedback(responses):
     except Exception as e:
         logging.error(f"Error generating instant feedback: {e}")
         return "Thank you for completing the interview! Your responses show good communication skills and thoughtful answers. We'll be in touch soon with next steps."
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+@app.route('/schedule')
+@login_required
+def schedule_dashboard():
+    """Interview scheduling dashboard"""
+    if current_user.role == 'recruiter':
+        # Get interviews that need scheduling
+        interviews = Interview.query.filter_by(recruiter_id=current_user.id).all()
+        scheduled_interviews = InterviewSchedule.query.filter_by(recruiter_id=current_user.id).all()
+        
+        return render_template('schedule_dashboard.html', 
+                             interviews=interviews, 
+                             scheduled_interviews=scheduled_interviews)
+    else:
+        # Candidate view - show their scheduled interviews
+        scheduled_interviews = InterviewSchedule.query.filter_by(candidate_id=current_user.id).all()
+        availability_slots = AvailabilitySlot.query.filter_by(user_id=current_user.id).all()
+        
+        return render_template('candidate_schedule.html',
+                             scheduled_interviews=scheduled_interviews,
+                             availability_slots=availability_slots)
+
+@app.route('/schedule/interview/<int:interview_id>')
+@login_required
+def schedule_interview(interview_id):
+    """Schedule a specific interview"""
+    if current_user.role != 'recruiter':
+        flash('Access denied. Only recruiters can schedule interviews.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    interview = Interview.query.get_or_404(interview_id)
+    if interview.recruiter_id != current_user.id:
+        flash('Access denied.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Get candidates who have completed this interview
+    candidates = db.session.query(User).join(InterviewResponse).filter(
+        InterviewResponse.interview_id == interview_id,
+        User.role == 'candidate'
+    ).all()
+    
+    return render_template('schedule_interview.html', interview=interview, candidates=candidates)
+
+@app.route('/schedule/bulk')
+@login_required
+def bulk_schedule():
+    """Bulk scheduling interface"""
+    if current_user.role != 'recruiter':
+        flash('Access denied. Only recruiters can schedule interviews.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    interviews = Interview.query.filter_by(recruiter_id=current_user.id).all()
+    return render_template('bulk_schedule.html', interviews=interviews)
+
+@app.route('/schedule/create', methods=['POST'])
+@login_required
+def create_schedule():
+    """Create a new interview schedule"""
+    if current_user.role != 'recruiter':
+        return jsonify({'error': 'Access denied'}), 403
+    
+    try:
+        data = request.get_json() or request.form
+        
+        interview_id = data.get('interview_id')
+        candidate_id = data.get('candidate_id')
+        scheduled_datetime = datetime.fromisoformat(data.get('scheduled_datetime'))
+        duration_minutes = int(data.get('duration_minutes', 60))
+        time_zone = data.get('time_zone', 'UTC')
+        notes = data.get('notes', '')
+        
+        # Check if interview exists and belongs to recruiter
+        interview = Interview.query.get_or_404(interview_id)
+        if interview.recruiter_id != current_user.id:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        # Check if candidate exists
+        candidate = User.query.get_or_404(candidate_id)
+        if candidate.role != 'candidate':
+            return jsonify({'error': 'Invalid candidate'}), 400
+        
+        # Create schedule
+        schedule = InterviewSchedule(
+            interview_id=interview_id,
+            candidate_id=candidate_id,
+            recruiter_id=current_user.id,
+            scheduled_datetime=scheduled_datetime,
+            duration_minutes=duration_minutes,
+            time_zone=time_zone,
+            notes=notes
+        )
+        
+        db.session.add(schedule)
+        db.session.commit()
+        
+        # Create calendar event if credentials available
+        from calendar_service import CalendarService
+        calendar_service = CalendarService()
+        
+        # Schedule notifications
+        schedule_notifications(schedule)
+        
+        return jsonify({
+            'success': True,
+            'schedule_id': schedule.id,
+            'message': 'Interview scheduled successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error creating schedule: {e}")
+        return jsonify({'error': 'Failed to create schedule'}), 500
+
+@app.route('/schedule/<int:schedule_id>/update', methods=['POST'])
+@login_required
+def update_schedule(schedule_id):
+    """Update an interview schedule"""
+    schedule = InterviewSchedule.query.get_or_404(schedule_id)
+    
+    # Check permissions
+    if current_user.role == 'recruiter' and schedule.recruiter_id != current_user.id:
+        return jsonify({'error': 'Access denied'}), 403
+    elif current_user.role == 'candidate' and schedule.candidate_id != current_user.id:
+        return jsonify({'error': 'Access denied'}), 403
+    
+    try:
+        data = request.get_json() or request.form
+        
+        if 'status' in data:
+            schedule.status = data['status']
+        if 'scheduled_datetime' in data and current_user.role == 'recruiter':
+            schedule.scheduled_datetime = datetime.fromisoformat(data['scheduled_datetime'])
+        if 'notes' in data:
+            schedule.notes = data['notes']
+        
+        schedule.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Schedule updated successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating schedule: {e}")
+        return jsonify({'error': 'Failed to update schedule'}), 500
+
+@app.route('/availability')
+@login_required
+def manage_availability():
+    """Manage user availability"""
+    availability_slots = AvailabilitySlot.query.filter_by(user_id=current_user.id).all()
+    return render_template('manage_availability.html', availability_slots=availability_slots)
+
+@app.route('/availability/add', methods=['POST'])
+@login_required
+def add_availability():
+    """Add availability slot"""
+    try:
+        data = request.get_json() or request.form
+        
+        slot = AvailabilitySlot(
+            user_id=current_user.id,
+            day_of_week=int(data['day_of_week']),
+            start_time=datetime.strptime(data['start_time'], '%H:%M').time(),
+            end_time=datetime.strptime(data['end_time'], '%H:%M').time(),
+            time_zone=data.get('time_zone', 'UTC')
+        )
+        
+        db.session.add(slot)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Availability added successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error adding availability: {e}")
+        return jsonify({'error': 'Failed to add availability'}), 500
+
+def schedule_notifications(schedule):
+    """Schedule email and SMS notifications for interview"""
+    try:
+        # Schedule reminder 24 hours before
+        reminder_time = schedule.scheduled_datetime - timedelta(hours=24)
+        
+        # Email notification for candidate
+        candidate_notification = ScheduleNotification(
+            schedule_id=schedule.id,
+            notification_type='email',
+            recipient_id=schedule.candidate_id,
+            send_at=reminder_time,
+            message_content=f"Reminder: You have an interview scheduled for {schedule.scheduled_datetime.strftime('%Y-%m-%d %H:%M')}"
+        )
+        
+        # Email notification for recruiter
+        recruiter_notification = ScheduleNotification(
+            schedule_id=schedule.id,
+            notification_type='email',
+            recipient_id=schedule.recruiter_id,
+            send_at=reminder_time,
+            message_content=f"Reminder: Interview with {schedule.candidate.username} scheduled for {schedule.scheduled_datetime.strftime('%Y-%m-%d %H:%M')}"
+        )
+        
+        db.session.add(candidate_notification)
+        db.session.add(recruiter_notification)
+        db.session.commit()
+        
+    except Exception as e:
+        logging.error(f"Error scheduling notifications: {e}")
 
 @app.errorhandler(404)
 def not_found_error(error):
