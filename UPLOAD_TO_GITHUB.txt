@@ -1,0 +1,65 @@
+MANUAL GITHUB UPLOAD INSTRUCTIONS FOR TALENTIQ
+==============================================
+
+STEP 1: Create GitHub Repository
+- Go to github.com and sign in
+- Click "New repository" 
+- Name: talentiq-platform
+- Description: TalentIQ - AI-Powered Interview Platform
+- Set to Public or Private
+- Do NOT initialize with README
+- Click "Create repository"
+
+STEP 2: Download These Files from Replit
+Copy/download ALL these files from your Replit project:
+
+CORE APPLICATION:
+✓ main.py
+✓ app.py  
+✓ routes.py
+✓ models.py
+✓ ai_service.py
+✓ calendar_service.py
+✓ pyproject.toml
+
+TEMPLATES FOLDER (entire folder):
+✓ templates/landing.html
+✓ templates/base.html
+✓ templates/login.html
+✓ templates/register.html
+✓ templates/dashboard.html
+✓ templates/interview_builder.html
+✓ templates/interview_interface.html
+✓ templates/chat_interview.html
+✓ templates/schedule_dashboard.html
+✓ All other .html files in templates/
+
+STATIC FOLDER (entire folder):
+✓ static/logo.svg
+✓ static/css/ (all CSS files)
+✓ static/js/ (all JS files)
+
+DEPLOYMENT CONFIG:
+✓ Dockerfile
+✓ cloudbuild.yaml
+✓ app.yaml
+✓ README.md
+✓ .gitignore
+✓ deployment-guide.md
+
+STEP 3: Upload to GitHub
+- In your new GitHub repository, click "uploading an existing file"
+- Drag and drop all the files above
+- Maintain folder structure (templates/, static/)
+- Add commit message: "Initial TalentIQ platform commit"
+- Click "Commit changes"
+
+STEP 4: Deploy to Google Cloud
+Once files are in GitHub:
+- Go to console.cloud.google.com
+- Create new project: talentiq-platform
+- Enable Cloud Run and Cloud Build APIs
+- Connect GitHub repository to Cloud Build
+- Deploy using the Dockerfile I created
+
+Your TalentIQ platform will then be live on Google Cloud with automatic scaling and SSL.
