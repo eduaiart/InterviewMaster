@@ -1,0 +1,16 @@
+version: 1.0
+runtime: python3
+build:
+  commands:
+    - pip install -r pyproject.toml
+run:
+  runtime-version: 3.11
+  command: gunicorn --bind 0.0.0.0:8000 --workers 2 main:app
+  network:
+    port: 8000
+    env: PORT
+env:
+  - name: FLASK_ENV
+    value: production
+  - name: PYTHONPATH
+    value: /app
