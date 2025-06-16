@@ -1,0 +1,43 @@
+DEFAULT 2025-06-16T07:20:56.378898Z RuntimeError: Either 'SQLALCHEMY_DATABASE_URI' or 'SQLALCHEMY_BINDS' must be set.
+DEFAULT 2025-06-16T07:20:56.378901Z [2025-06-16 07:20:56 +0000] [3] [ERROR] Exception in worker process
+ERROR 2025-06-16T07:20:56.378911Z Traceback (most recent call last): File "/usr/local/lib/python3.11/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker worker.init_process() File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 135, in init_process self.load_wsgi() File "/usr/local/lib/python3.11/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi self.wsgi = self.app.wsgi()
+DEFAULT 2025-06-16T07:20:56.378914Z ^^^^^^^^^^^^^^^
+DEFAULT 2025-06-16T07:20:56.378918Z File "/usr/local/lib/python3.11/site-packages/gunicorn/app/base.py", line 66, in wsgi
+DEFAULT 2025-06-16T07:20:56.378921Z self.callable = self.load()
+DEFAULT 2025-06-16T07:20:56.378925Z ^^^^^^^^^^^
+DEFAULT 2025-06-16T07:20:56.378928Z File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+DEFAULT 2025-06-16T07:20:56.378931Z return self.load_wsgiapp()
+DEFAULT 2025-06-16T07:20:56.378935Z ^^^^^^^^^^^^^^^^^^^
+DEFAULT 2025-06-16T07:20:56.378938Z File "/usr/local/lib/python3.11/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+DEFAULT 2025-06-16T07:20:56.378942Z return util.import_app(self.app_uri)
+DEFAULT 2025-06-16T07:20:56.378945Z ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+DEFAULT 2025-06-16T07:20:56.378949Z File "/usr/local/lib/python3.11/site-packages/gunicorn/util.py", line 370, in import_app
+DEFAULT 2025-06-16T07:20:56.378953Z mod = importlib.import_module(module)
+DEFAULT 2025-06-16T07:20:56.378957Z ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+DEFAULT 2025-06-16T07:20:56.378960Z File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+DEFAULT 2025-06-16T07:20:56.378964Z return _bootstrap._gcd_import(name[level:], package, level)
+DEFAULT 2025-06-16T07:20:56.378968Z ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+DEFAULT 2025-06-16T07:20:56.378971Z File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+DEFAULT 2025-06-16T07:20:56.378975Z File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+DEFAULT 2025-06-16T07:20:56.378979Z File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+DEFAULT 2025-06-16T07:20:56.378982Z File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+DEFAULT 2025-06-16T07:20:56.378986Z File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+DEFAULT 2025-06-16T07:20:56.378989Z File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+DEFAULT 2025-06-16T07:20:56.378993Z File "/app/main.py", line 1, in <module>
+DEFAULT 2025-06-16T07:20:56.378996Z from app import app
+DEFAULT 2025-06-16T07:20:56.379Z File "/app/app.py", line 30, in <module>
+DEFAULT 2025-06-16T07:20:56.379004Z db.init_app(app)
+DEFAULT 2025-06-16T07:20:56.379007Z File "/usr/local/lib/python3.11/site-packages/flask_sqlalchemy/extension.py", line 355, in init_app
+DEFAULT 2025-06-16T07:20:56.379013Z raise RuntimeError(
+DEFAULT 2025-06-16T07:20:56.379019Z RuntimeError: Either 'SQLALCHEMY_DATABASE_URI' or 'SQLALCHEMY_BINDS' must be set.
+DEFAULT 2025-06-16T07:20:56.379021Z [2025-06-16 07:20:56 +0000] [2] [INFO] Worker exiting (pid: 2)
+DEFAULT 2025-06-16T07:20:56.379025Z [2025-06-16 07:20:56 +0000] [3] [INFO] Worker exiting (pid: 3)
+DEFAULT 2025-06-16T07:20:56.506905Z [2025-06-16 07:20:56 +0000] [1] [ERROR] Worker (pid:3) exited with code 3
+DEFAULT 2025-06-16T07:20:56.508288Z [2025-06-16 07:20:56 +0000] [1] [ERROR] Shutting down: Master
+DEFAULT 2025-06-16T07:20:56.508368Z [2025-06-16 07:20:56 +0000] [1] [ERROR] Reason: Worker failed to boot.
+DEFAULT 2025-06-16T07:21:05.787452Z [2025-06-16 07:21:05 +0000] [1] [INFO] Starting gunicorn 23.0.0
+DEFAULT 2025-06-16T07:21:05.788937Z [2025-06-16 07:21:05 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+DEFAULT 2025-06-16T07:21:05.788995Z [2025-06-16 07:21:05 +0000] [1] [INFO] Using worker: sync
+INFO 2025-06-16T07:21:05.795066Z Default STARTUP TCP probe succeeded after 1 attempt for container "placeholder-1" on port 8080.
+DEFAULT 2025-06-16T07:21:05.807040Z [2025-06-16 07:21:05 +0000] [2] [INFO] Booting worker with pid: 2
+DEFAULT 2025-06-16T07:21:05.851234Z [2025-06-16 07:21:05 +0000] [3] [INFO] Booting worker with pid: 3
