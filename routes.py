@@ -1197,9 +1197,18 @@ def schedule_dashboard():
         interviews = Interview.query.filter_by(recruiter_id=current_user.id).all()
         scheduled_interviews = InterviewSchedule.query.filter_by(recruiter_id=current_user.id).all()
         
+        # Check if Google Calendar is connected
+        calendar_setting = IntegrationSettings.query.filter_by(
+            organization_id=current_user.id,
+            setting_type='calendar',
+            setting_key='google_credentials'
+        ).first()
+        calendar_connected = calendar_setting is not None
+        
         return render_template('schedule_dashboard.html', 
                              interviews=interviews, 
-                             scheduled_interviews=scheduled_interviews)
+                             scheduled_interviews=scheduled_interviews,
+                             calendar_connected=calendar_connected)
     else:
         # Candidate view - show their scheduled interviews
         scheduled_interviews = InterviewSchedule.query.filter_by(candidate_id=current_user.id).all()
@@ -1436,13 +1445,13 @@ def calendar_callback():
         # Store credentials in database for user
         try:
             # Convert credentials to JSON for storage
-            creds_json = {
-                'token': credentials.token,
-                'refresh_token': credentials.refresh_token,
-                'token_uri': credentials.token_uri,
-                'client_id': credentials.client_id,
-                'client_secret': credentials.client_secret,
-                'scopes': credentials.scopes
+            creds_data = credentials.to_json() if hasattr(credentials, 'to_json') else {
+                'token': getattr(credentials, 'token', None),
+                'refresh_token': getattr(credentials, 'refresh_token', None),
+                'token_uri': getattr(credentials, 'token_uri', None),
+                'client_id': getattr(credentials, 'client_id', None),
+                'client_secret': getattr(credentials, 'client_secret', None),
+                'scopes': getattr(credentials, 'scopes', None)
             }
             
             # Store in integration settings
@@ -1453,13 +1462,13 @@ def calendar_callback():
             ).first()
             
             if existing_setting:
-                existing_setting.setting_value = json.dumps(creds_json)
+                existing_setting.setting_value = creds_data if isinstance(creds_data, str) else json.dumps(creds_data)
             else:
                 calendar_setting = IntegrationSettings(
                     organization_id=current_user.id,
                     setting_type='calendar',
                     setting_key='google_credentials',
-                    setting_value=json.dumps(creds_json)
+                    setting_value=creds_data if isinstance(creds_data, str) else json.dumps(creds_data)
                 )
                 db.session.add(calendar_setting)
             
