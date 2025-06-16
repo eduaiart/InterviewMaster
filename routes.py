@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 from app import app, db
 from models import User, Interview, InterviewResponse, Question, VideoRecording, TeamMember, IntegrationSettings, AuditLog, InterviewSchedule, AvailabilitySlot, ScheduleNotification
 from ai_service import generate_interview_questions, score_interview_responses, analyze_video_interview
+from calendar_service import CalendarService
 
 @app.route('/')
 def index():
@@ -1393,6 +1394,109 @@ def schedule_notifications(schedule):
         
     except Exception as e:
         logging.error(f"Error scheduling notifications: {e}")
+
+@app.route('/calendar/connect')
+@login_required
+def connect_calendar():
+    """Start Google Calendar OAuth flow"""
+    calendar_service = CalendarService()
+    redirect_uri = url_for('calendar_callback', _external=True)
+    
+    auth_url, state = calendar_service.get_authorization_url(redirect_uri)
+    
+    if auth_url:
+        # Store state in session for security
+        from flask import session
+        session['calendar_oauth_state'] = state
+        return redirect(auth_url)
+    else:
+        flash('Unable to connect to Google Calendar. Please try again.', 'error')
+        return redirect(url_for('schedule_dashboard'))
+
+@app.route('/calendar/callback')
+@login_required
+def calendar_callback():
+    """Handle Google Calendar OAuth callback"""
+    from flask import session
+    
+    code = request.args.get('code')
+    state = request.args.get('state')
+    stored_state = session.get('calendar_oauth_state')
+    
+    if not code or not state or state != stored_state:
+        flash('Calendar authorization failed. Please try again.', 'error')
+        return redirect(url_for('schedule_dashboard'))
+    
+    calendar_service = CalendarService()
+    redirect_uri = url_for('calendar_callback', _external=True)
+    
+    credentials = calendar_service.exchange_code_for_token(code, state, redirect_uri)
+    
+    if credentials:
+        # Store credentials in database for user
+        try:
+            # Convert credentials to JSON for storage
+            creds_json = {
+                'token': credentials.token,
+                'refresh_token': credentials.refresh_token,
+                'token_uri': credentials.token_uri,
+                'client_id': credentials.client_id,
+                'client_secret': credentials.client_secret,
+                'scopes': credentials.scopes
+            }
+            
+            # Store in integration settings
+            existing_setting = IntegrationSettings.query.filter_by(
+                organization_id=current_user.id,  # Using user_id as org_id for simplicity
+                setting_type='calendar',
+                setting_key='google_credentials'
+            ).first()
+            
+            if existing_setting:
+                existing_setting.setting_value = json.dumps(creds_json)
+            else:
+                calendar_setting = IntegrationSettings(
+                    organization_id=current_user.id,
+                    setting_type='calendar',
+                    setting_key='google_credentials',
+                    setting_value=json.dumps(creds_json)
+                )
+                db.session.add(calendar_setting)
+            
+            db.session.commit()
+            flash('Google Calendar connected successfully!', 'success')
+            
+        except Exception as e:
+            logging.error(f"Error storing calendar credentials: {e}")
+            flash('Failed to save calendar connection. Please try again.', 'error')
+    else:
+        flash('Failed to connect to Google Calendar. Please try again.', 'error')
+    
+    return redirect(url_for('schedule_dashboard'))
+
+@app.route('/calendar/disconnect', methods=['POST'])
+@login_required
+def disconnect_calendar():
+    """Disconnect Google Calendar integration"""
+    try:
+        calendar_setting = IntegrationSettings.query.filter_by(
+            organization_id=current_user.id,
+            setting_type='calendar',
+            setting_key='google_credentials'
+        ).first()
+        
+        if calendar_setting:
+            db.session.delete(calendar_setting)
+            db.session.commit()
+            flash('Google Calendar disconnected successfully.', 'success')
+        else:
+            flash('No calendar connection found.', 'info')
+            
+    except Exception as e:
+        logging.error(f"Error disconnecting calendar: {e}")
+        flash('Failed to disconnect calendar. Please try again.', 'error')
+    
+    return redirect(url_for('schedule_dashboard'))
 
 @app.errorhandler(404)
 def not_found_error(error):
