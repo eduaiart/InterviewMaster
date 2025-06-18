@@ -1,0 +1,365 @@
+/* Cross-Browser Compatibility Fixes for TalentIQ */
+
+/* CSS Reset for consistent rendering */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    line-height: 1.5;
+    color: #f8f9fa;
+    background-color: #212529;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Flexbox fixes for older browsers */
+.d-flex {
+    display: -webkit-box !important;
+    display: -webkit-flex !important;
+    display: -moz-box !important;
+    display: -ms-flexbox !important;
+    display: flex !important;
+}
+
+.flex-column {
+    -webkit-box-orient: vertical !important;
+    -webkit-box-direction: normal !important;
+    -webkit-flex-direction: column !important;
+    -moz-box-orient: vertical !important;
+    -moz-box-direction: normal !important;
+    -ms-flex-direction: column !important;
+    flex-direction: column !important;
+}
+
+.align-items-center {
+    -webkit-box-align: center !important;
+    -webkit-align-items: center !important;
+    -moz-box-align: center !important;
+    -ms-flex-align: center !important;
+    align-items: center !important;
+}
+
+.justify-content-center {
+    -webkit-box-pack: center !important;
+    -webkit-justify-content: center !important;
+    -moz-box-pack: center !important;
+    -ms-flex-pack: center !important;
+    justify-content: center !important;
+}
+
+/* Navbar fixes */
+.navbar {
+    position: relative;
+    width: 100%;
+    z-index: 1030;
+    background-color: #1a1a1a !important;
+    border-bottom: 1px solid #333;
+    min-height: 60px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+
+.navbar-brand {
+    display: inline-flex;
+    align-items: center;
+    padding-top: 0.3125rem;
+    padding-bottom: 0.3125rem;
+    margin-right: 1rem;
+    font-size: 1.5rem;
+    line-height: inherit;
+    white-space: nowrap;
+    text-decoration: none;
+    color: #667eea !important;
+    font-weight: bold;
+}
+
+.navbar-brand:hover {
+    color: #667eea !important;
+    text-decoration: none;
+}
+
+.navbar-toggler {
+    padding: 0.25rem 0.75rem;
+    font-size: 1.25rem;
+    line-height: 1;
+    background-color: transparent;
+    border: 1px solid #555;
+    border-radius: 0.25rem;
+}
+
+.navbar-toggler:focus {
+    text-decoration: none;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem;
+}
+
+.navbar-toggler-icon {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    content: "";
+    background: no-repeat center center;
+    background-size: 100% 100%;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Logo fixes */
+.talentiq-logo {
+    display: inline-flex !important;
+    align-items: center !important;
+    font-weight: bold !important;
+    font-size: 1.5rem !important;
+    text-decoration: none !important;
+    color: #667eea !important;
+}
+
+.logo-icon {
+    width: 32px !important;
+    height: 32px !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-right: 8px !important;
+    position: relative !important;
+    flex-shrink: 0 !important;
+}
+
+.logo-icon::before {
+    content: '' !important;
+    position: absolute !important;
+    width: 20px !important;
+    height: 20px !important;
+    background: white !important;
+    border-radius: 50% !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+.logo-icon::after {
+    content: 'IQ' !important;
+    position: absolute !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    color: #667eea !important;
+    z-index: 1 !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+/* Main content area */
+main {
+    flex: 1 0 auto;
+    width: 100%;
+}
+
+/* Footer fixes */
+footer {
+    flex-shrink: 0;
+    background-color: #1a1a1a !important;
+    border-top: 1px solid #333;
+    color: #f8f9fa;
+    width: 100%;
+    margin-top: auto;
+}
+
+footer .container {
+    max-width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+footer .row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+}
+
+footer .col-md-6 {
+    position: relative;
+    width: 100%;
+    min-height: 1px;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+/* Dark theme overrides */
+.bg-dark {
+    background-color: #212529 !important;
+}
+
+.text-light {
+    color: #f8f9fa !important;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Card styling */
+.card {
+    background-color: #2d3748 !important;
+    border: 1px solid #4a5568 !important;
+    color: #e2e8f0 !important;
+}
+
+.card-header {
+    background-color: #374151 !important;
+    border-bottom: 1px solid #4a5568 !important;
+}
+
+/* Button styling */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-outline-primary {
+    color: #667eea !important;
+    border-color: #667eea !important;
+    background-color: transparent !important;
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-color: #667eea !important;
+    color: white !important;
+}
+
+/* Dropdown fixes */
+.dropdown-menu {
+    background-color: #2d3748 !important;
+    border: 1px solid #4a5568 !important;
+}
+
+.dropdown-item {
+    color: #e2e8f0 !important;
+    background-color: transparent;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: #4a5568 !important;
+    color: #ffffff !important;
+}
+
+/* Responsive breakpoints */
+@media (min-width: 768px) {
+    .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+    
+    .text-md-end {
+        text-align: right !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .navbar-brand {
+        font-size: 1.25rem !important;
+    }
+    
+    .logo-icon {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .logo-icon::before {
+        width: 16px !important;
+        height: 16px !important;
+    }
+
+    .logo-icon::after {
+        font-size: 8px !important;
+    }
+
+    .navbar-nav {
+        margin-top: 0.5rem;
+    }
+    
+    .col-md-6 {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    
+    .text-md-end {
+        text-align: center !important;
+    }
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    footer {
+        display: none !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .navbar {
+        border-bottom: 2px solid #fff;
+    }
+    
+    footer {
+        border-top: 2px solid #fff;
+    }
+}
+
+/* Animation preferences */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Internet Explorer fixes */
+.ie-fix {
+    display: -ms-flexbox;
+    -ms-flex-direction: column;
+    -ms-flex: 1 0 auto;
+}
+
+/* Safari fixes */
+@supports (-webkit-appearance: none) {
+    .navbar-brand {
+        -webkit-font-smoothing: antialiased;
+    }
+}
+
+/* Firefox fixes */
+@-moz-document url-prefix() {
+    .navbar {
+        background-color: #1a1a1a !important;
+    }
+}
