@@ -20,21 +20,75 @@
 
 ## Files to Commit
 
-### Modified Files
+### Core Application Files
+```
+main.py
+app.py
+models.py
+routes.py
+ai_service.py
+calendar_service.py
+pyproject.toml
+uv.lock
+```
+
+### Templates (All HTML files)
 ```
 templates/base.html
-routes.py
+templates/landing.html
+templates/dashboard.html
+templates/login.html
+templates/register.html
+templates/interview_builder.html
+templates/interview_interface.html
+templates/interview_results.html
+templates/candidate_analytics.html
+templates/candidate_profile.html
+templates/comparison_table.html
+templates/advanced_analytics.html
+templates/chat_interview.html
+templates/schedule_dashboard.html
+templates/schedule_interview.html
+templates/bulk_schedule.html
+templates/manage_availability.html
+templates/candidate_schedule.html
+templates/team_management.html
+templates/pricing.html
+templates/settings.html
+templates/404.html
+templates/500.html
+templates/index.html
+```
+
+### Static Assets
+```
+static/css/style.css
+static/css/interview-fix.css
+static/css/cross-browser-fixes.css
+static/logo.svg
+```
+
+### Deployment Configuration
+```
 Dockerfile
 cloudbuild.yaml
 app.yaml
+apprunner.yaml
+deploy.sh
 ```
 
-### New Files
+### Documentation
 ```
-static/css/cross-browser-fixes.css
+README.md
 GOOGLE_CLOUD_DEPLOYMENT.md
-deploy.sh
 GITHUB_CHECKIN.md
+improvement-recommendations.md
+```
+
+### Configuration Files
+```
+.replit
+.gitignore
 ```
 
 ## Git Commands to Run
@@ -43,37 +97,85 @@ GITHUB_CHECKIN.md
 # Check current status
 git status
 
-# Add all modified and new files
-git add templates/base.html
-git add routes.py
-git add Dockerfile
-git add cloudbuild.yaml
-git add app.yaml
-git add static/css/cross-browser-fixes.css
-git add GOOGLE_CLOUD_DEPLOYMENT.md
-git add deploy.sh
-git add GITHUB_CHECKIN.md
+# Add all core application files
+git add main.py app.py models.py routes.py ai_service.py calendar_service.py
+git add pyproject.toml uv.lock
 
-# Or add all changes at once
-git add .
+# Add all templates
+git add templates/
+
+# Add all static assets
+git add static/
+
+# Add deployment configuration
+git add Dockerfile cloudbuild.yaml app.yaml apprunner.yaml deploy.sh
+
+# Add documentation
+git add README.md GOOGLE_CLOUD_DEPLOYMENT.md GITHUB_CHECKIN.md
+git add improvement-recommendations.md
+
+# Add configuration files
+git add .replit .gitignore
+
+# Or add all changes at once (excluding sensitive files)
+git add . 
+
+# Remove any files that shouldn't be committed
+git reset HEAD __pycache__/
+git reset HEAD uploads/
+git reset HEAD attached_assets/
+git reset HEAD *.md  # Remove temporary deployment guides if needed
 
 # Commit with descriptive message
-git commit -m "feat: Add Google Cloud deployment setup and fix cross-browser compatibility
+git commit -m "feat: Complete TalentIQ platform with Google Cloud deployment
 
-- Enhanced Dockerfile with production optimizations and security
-- Added comprehensive Cloud Build and App Engine configurations
-- Fixed header/footer display issues across different browsers
-- Added cross-browser CSS compatibility fixes
-- Implemented health check endpoint for monitoring
-- Added Google Calendar OAuth improvements
-- Created automated deployment script and documentation
-- Updated base template with better Bootstrap integration"
+Core Features:
+- AI-powered interview platform with OpenAI integration
+- Multi-format interviews: video, text, and real-time chat
+- Google Calendar integration with OAuth flow
+- Advanced candidate analytics and comparison tools
+- Team management and role-based access control
+- Interview scheduling with availability management
+
+Technical Improvements:
+- Production-ready Dockerfile with security optimizations
+- Comprehensive Cloud Build and App Engine configurations
+- Fixed cross-browser compatibility issues
+- Health check endpoint for monitoring
+- Auto-scaling deployment configuration
+- Enhanced error handling and logging
+
+Deployment Ready:
+- One-command deployment script
+- Complete documentation and setup guides
+- Environment variable management
+- Database migration support"
 
 # Push to GitHub
 git push origin main
 
 # Or push to your specific branch
 git push origin your-branch-name
+```
+
+## Files to EXCLUDE from Git
+
+```bash
+# These should be in .gitignore and not committed:
+__pycache__/
+uploads/videos/
+attached_assets/
+*.pyc
+*.pyo
+.env
+.venv/
+instance/
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
 ```
 
 ## Summary of Improvements
