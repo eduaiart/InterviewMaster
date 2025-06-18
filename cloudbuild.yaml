@@ -24,11 +24,38 @@ steps:
       - '--port'
       - '8080'
       - '--memory'
-      - '1Gi'
+      - '2Gi'
       - '--cpu'
+      - '2'
+      - '--min-instances'
       - '1'
       - '--max-instances'
-      - '10'
+      - '100'
+      - '--concurrency'
+      - '80'
+      - '--timeout'
+      - '300'
+      - '--set-env-vars'
+      - 'FLASK_ENV=production'
+      - '--set-env-vars'
+      - 'PYTHONUNBUFFERED=1'
+      - '--execution-environment'
+      - 'gen2'
 
+# Substitute variables for image tagging
+substitutions:
+  _SERVICE_NAME: 'talentiq'
+  _REGION: 'us-central1'
+
+# Build timeout
+timeout: '1200s'
+
+# Images to push to registry
 images:
   - 'gcr.io/$PROJECT_ID/talentiq:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/talentiq:latest'
+
+# Build options
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'

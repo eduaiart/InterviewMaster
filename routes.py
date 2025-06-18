@@ -10,6 +10,17 @@ from app import app, db
 from models import User, Interview, InterviewResponse, Question, VideoRecording, TeamMember, IntegrationSettings, AuditLog, InterviewSchedule, AvailabilitySlot, ScheduleNotification
 from ai_service import generate_interview_questions, score_interview_responses, analyze_video_interview
 from calendar_service import CalendarService
+from sqlalchemy import text
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Google Cloud Run"""
+    try:
+        # Basic database connectivity check
+        db.session.execute(text('SELECT 1'))
+        return {'status': 'healthy', 'database': 'connected'}, 200
+    except Exception as e:
+        return {'status': 'unhealthy', 'error': str(e)}, 503
 
 @app.route('/')
 def index():
