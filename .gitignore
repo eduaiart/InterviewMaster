@@ -59,6 +59,20 @@ Thumbs.db
 *.log
 
 # Replit specific
-.replit
 replit.nix
 .upm/
+
+# Development assets
+attached_assets/
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Lock files (can cause Docker build issues)
+uv.lock
+
+# Temporary deployment files
+*.md
+!README.md
+!GOOGLE_CLOUD_DEPLOYMENT.md
