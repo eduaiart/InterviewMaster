@@ -4,7 +4,6 @@ from flask_login import UserMixin
 from app import db
 
 class User(UserMixin, db.Model):
-    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -17,7 +16,6 @@ class User(UserMixin, db.Model):
     interview_responses = db.relationship('InterviewResponse', backref='candidate', lazy=True)
 
 class Interview(db.Model):
-    __tablename__ = 'interview'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     job_description = db.Column(db.Text, nullable=False)
@@ -31,7 +29,6 @@ class Interview(db.Model):
     responses = db.relationship('InterviewResponse', backref='interview', lazy=True)
 
 class InterviewResponse(db.Model):
-    __tablename__ = 'interview_response'
     id = db.Column(db.Integer, primary_key=True)
     interview_id = db.Column(db.Integer, db.ForeignKey('interview.id'), nullable=False)
     candidate_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -45,7 +42,6 @@ class InterviewResponse(db.Model):
     __table_args__ = (db.UniqueConstraint('interview_id', 'candidate_id', name='_interview_candidate_uc'),)
 
 class Question(db.Model):
-    __tablename__ = 'question'
     id = db.Column(db.Integer, primary_key=True)
     interview_id = db.Column(db.Integer, db.ForeignKey('interview.id'), nullable=False)
     question_text = db.Column(db.Text, nullable=False)
@@ -55,7 +51,6 @@ class Question(db.Model):
     expected_keywords = db.Column(db.Text)  # JSON string of expected keywords for scoring
 
 class VideoRecording(db.Model):
-    __tablename__ = 'video_recording'
     id = db.Column(db.Integer, primary_key=True)
     interview_id = db.Column(db.Integer, db.ForeignKey('interview.id'), nullable=False)
     candidate_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -74,7 +69,6 @@ class VideoRecording(db.Model):
     candidate = db.relationship('User', backref='video_recordings')
 
 class TeamMember(db.Model):
-    __tablename__ = 'team_member'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     organization_id = db.Column(db.Integer, nullable=False)  # For multi-tenant support
@@ -90,7 +84,6 @@ class TeamMember(db.Model):
     added_by_user = db.relationship('User', foreign_keys=[added_by])
 
 class IntegrationSettings(db.Model):
-    __tablename__ = 'integration_settings'
     id = db.Column(db.Integer, primary_key=True)
     organization_id = db.Column(db.Integer, nullable=False)
     setting_type = db.Column(db.String(50), nullable=False)  # webhook, ats, etc.
@@ -103,7 +96,6 @@ class IntegrationSettings(db.Model):
     __table_args__ = (db.UniqueConstraint('organization_id', 'setting_type', 'setting_key', name='_org_setting_uc'),)
 
 class AuditLog(db.Model):
-    __tablename__ = 'audit_log'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     action = db.Column(db.String(100), nullable=False)
@@ -118,7 +110,6 @@ class AuditLog(db.Model):
     user = db.relationship('User', backref='audit_logs')
 
 class InterviewSchedule(db.Model):
-    __tablename__ = 'interview_schedule'
     id = db.Column(db.Integer, primary_key=True)
     interview_id = db.Column(db.Integer, db.ForeignKey('interview.id'), nullable=False)
     candidate_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -139,7 +130,6 @@ class InterviewSchedule(db.Model):
     recruiter = db.relationship('User', foreign_keys=[recruiter_id], backref='recruiter_schedules')
 
 class AvailabilitySlot(db.Model):
-    __tablename__ = 'availability_slot'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     day_of_week = db.Column(db.Integer, nullable=False)  # 0=Monday, 6=Sunday
@@ -152,7 +142,6 @@ class AvailabilitySlot(db.Model):
     user = db.relationship('User', backref='availability_slots')
 
 class ScheduleNotification(db.Model):
-    __tablename__ = 'schedule_notification'
     id = db.Column(db.Integer, primary_key=True)
     schedule_id = db.Column(db.Integer, db.ForeignKey('interview_schedule.id'), nullable=False)
     notification_type = db.Column(db.String(20), nullable=False)  # email, sms

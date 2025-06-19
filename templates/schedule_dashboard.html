@@ -181,16 +181,9 @@
                                     <small class="text-muted">Sync interviews with your Google Calendar</small>
                                 </div>
                                 <div class="ms-auto">
-                                    {% if calendar_connected %}
-                                        <button class="btn btn-success btn-sm disabled">
-                                            <i class="fas fa-check"></i> Connected
-                                        </button>
-                                        <form method="POST" action="{{ url_for('disconnect_calendar') }}" style="display: inline;">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm ms-2">Disconnect</button>
-                                        </form>
-                                    {% else %}
-                                        <a href="{{ url_for('connect_calendar') }}" class="btn btn-outline-primary btn-sm">Connect</a>
-                                    {% endif %}
+                                    <button class="btn btn-outline-primary btn-sm" onclick="connectGoogleCalendar()">
+                                        Connect
+                                    </button>
                                 </div>
                             </div>
                         </div>
