@@ -139,6 +139,7 @@ class InterviewSchedule(db.Model):
     recruiter = db.relationship('User', foreign_keys=[recruiter_id], backref='recruiter_schedules')
 
 class AvailabilitySlot(db.Model):
+    __tablename__ = 'availability_slot'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     day_of_week = db.Column(db.Integer, nullable=False)  # 0=Monday, 6=Sunday
@@ -151,6 +152,7 @@ class AvailabilitySlot(db.Model):
     user = db.relationship('User', backref='availability_slots')
 
 class ScheduleNotification(db.Model):
+    __tablename__ = 'schedule_notification'
     id = db.Column(db.Integer, primary_key=True)
     schedule_id = db.Column(db.Integer, db.ForeignKey('interview_schedule.id'), nullable=False)
     notification_type = db.Column(db.String(20), nullable=False)  # email, sms
